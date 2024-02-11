@@ -6,6 +6,7 @@ const sequelize = new Sequelize(
   process.env.MYSQLPASSWORD,
   {
     dialect: "mysql",
+    host: "127.0.0.1",
     define: {
       freezeTableName: true,
     },
