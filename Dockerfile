@@ -19,4 +19,4 @@ COPY . .
 EXPOSE 5001
 
 
-CMD ["nodemon", "index.js"]
+CMD ["npm", "start"]

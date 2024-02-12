@@ -1,26 +1,36 @@
 version: "3.7"
-
 services:
   app:
     image: node:20-alpine
     command: sh -c "npm install && npm start"
     ports:
       - 5001:5001
-    working_dir: /app
+    depends_on:
+      - mysql
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_DB: mysql-container
+      MYSQL_ROOT_USER: ${DB_USER}
+      MYSQL_ROOT_PASSWORD: ${DOCKERMYSQL_PASSWORD}
     volumes:
-      - ./:/app
-
+      - refrigerator-mysql-data:/usr/src/app
+    networks:
+      - refrigeratornetwork
   mysql:
     image: mysql:8
+    platform: linux/arm64
     ports:
       - 3306:3306
     volumes:
-      - todo-mysql-data:/var/lib/mysql
+      - refrigerator-mysql-data:/usr/src/mysql
     environment:
-      MYSQL_HOST: ${DB_HOST}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_ROOT_PASSWORD: ${MYSQLPASSWORD}
-      MYSQL_DATABASE: my-refrigerator
-
+      MYSQL_ROOT_USER: ${DB_USER}
+      MYSQL_ROOT_PASSWORD: ${DOCKERMYSQL_PASSWORD}
+      MYSQL_DATABASE: mysql-container
+    networks:
+      - refrigeratornetwork
 volumes:
-  todo-mysql-data:
+  refrigerator-mysql-data:
+networks:
+  refrigeratornetwork:
+    external: true
