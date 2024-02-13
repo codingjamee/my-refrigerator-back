@@ -1,4 +1,5 @@
 import { Sequelize } from "sequelize";
+import "dotenv/config";
 //mysql로 연결
 const sequelize = new Sequelize(
   "my-refrigerator",
@@ -6,7 +7,7 @@ const sequelize = new Sequelize(
   process.env.MYSQLPASSWORD,
   {
     dialect: "mysql",
-    host: "127.0.0.1",
+    host: "mysql",
     define: {
       freezeTableName: true,
     },
