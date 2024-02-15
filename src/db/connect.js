@@ -21,7 +21,6 @@ sequelize
   .authenticate()
   .then(() => {
     console.log("Connection successfully!");
-    return sequelize.sync({ force: false });
   })
   .catch((err) => console.log("Error connecting to database", err));
 

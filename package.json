@@ -2,10 +2,10 @@
   "name": "my-refrigerator-back",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon -L index.js"
+    "start": "nodemon -L ./src/index.js"
   },
   "type": "module",
   "author": "",

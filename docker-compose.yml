@@ -20,7 +20,6 @@ services:
       - .:/src
     networks:
       - refrigeratornetwork
-
   mysql:
     image: mysql:8
     container_name: mysql-container

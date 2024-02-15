@@ -18,4 +18,4 @@ ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
 
 EXPOSE 5000
 
-CMD ["node", "index.js"]
+# CMD ["npm", "start"]
