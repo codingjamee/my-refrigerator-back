@@ -1,10 +1,12 @@
 import { Sequelize } from "sequelize";
-import "dotenv/config";
-//mysql로 연결
+import * as dotenv from "dotenv";
+dotenv.config();
+
+// mysql로 연결
 const sequelize = new Sequelize(
-  "my-refrigerator",
+  "mysql-container",
   "root",
-  process.env.MYSQLPASSWORD,
+  process.env.DOCKERMYSQL_PASSWORD,
   {
     dialect: "mysql",
     host: "mysql",
@@ -19,6 +21,7 @@ sequelize
   .authenticate()
   .then(() => {
     console.log("Connection successfully!");
+    return sequelize.sync({ force: false });
   })
   .catch((err) => console.log("Error connecting to database", err));
 
