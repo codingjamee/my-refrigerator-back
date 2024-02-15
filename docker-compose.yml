@@ -1,36 +1,41 @@
 version: "3.7"
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     ports:
-      - 5001:5001
+      - "5000:5000"
     depends_on:
       - mysql
+    restart: on-failure
     environment:
-      MYSQL_HOST: mysql
-      MYSQL_DB: mysql-container
-      MYSQL_ROOT_USER: ${DB_USER}
-      MYSQL_ROOT_PASSWORD: ${DOCKERMYSQL_PASSWORD}
+      MYSQL_HOST: "mysql"
+      MYSQL_DB: "mysql-container"
+      DB_HOST_NAME: "mysql"
+      DB_PORT: "3306"
+      MYSQL_ROOT_USER: "${DB_USER}"
+      MYSQL_ROOT_PASSWORD: "${DOCKERMYSQL_PASSWORD}"
     volumes:
-      - refrigerator-mysql-data:/usr/src/app
+      - .:/src
     networks:
       - refrigeratornetwork
+
   mysql:
     image: mysql:8
     container_name: mysql-container
     platform: linux/arm64
-    expose:
-      - 3306
-    ports:
-      - 3306:3306
     volumes:
       - refrigerator-mysql-data:/var/lib/mysql
     environment:
-      MYSQL_ROOT_USER: ${DB_USER}
-      MYSQL_ROOT_PASSWORD: ${DOCKERMYSQL_PASSWORD}
-      MYSQL_DATABASE: mysql-container
+      MYSQL_ROOT_PASSWORD: "${DOCKERMYSQL_PASSWORD}"
+      MYSQL_DATABASE: "mysql-container"
+    env_file:
+      - .env
     restart: always
     command:
+      - --default-authentication-plugin=mysql_native_password
+      - --bind-address=0.0.0.0
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     networks:
