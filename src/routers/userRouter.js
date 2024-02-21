@@ -6,7 +6,7 @@ const userRouter = Router();
 userRouter.get("/", async (req, res, next) => {
   console.log("get userInfo");
   try {
-    const userInfo = await UserController.getUser({ user_id: "jenner" });
+    const userInfo = await UserController.getUser({ userId: "jenner" });
     res.json(userInfo);
     console.log(userInfo.toJSON());
   } catch (err) {

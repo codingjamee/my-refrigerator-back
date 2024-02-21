@@ -1,7 +1,11 @@
 import express from "express";
 import errorMiddleware from "./middleware/errorMiddleware.js";
 import { userRouter } from "./routers/userRouter.js";
+import { sequelize } from "./models/index.js";
+
 const app = express();
+
+// sequelize.sync({ force: true });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -10,7 +14,7 @@ app.use(express.urlencoded({ extended: false }));
 app.get("/", (req, res) => {
   res.send("This is my refrigerator project back server");
 });
-app.use("/user/api", userRouter);
+app.use("/api/user", userRouter);
 
 //
 app.use(errorMiddleware);
