@@ -1,15 +1,20 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./index.js";
 
-export const PurchasedReceiptItem = sequelize.define(
-  "PurchasedReceiptItemModel",
+export const PurchaseReceiptItem = sequelize.define(
+  "PurchaseReceiptItemModel",
   {
+    foodCategory: {
+      type: DataTypes.STRING(50),
+    },
     foodName: {
       type: DataTypes.STRING(100),
     },
-    purchasedPlace: {
-      type: DataTypes.STRING(50),
+    receiptId: {
+      type: Sequelize.UUID,
+      allowNull: true,
     },
+
     foodWeight: {
       type: DataTypes.INTEGER,
     },
@@ -18,6 +23,12 @@ export const PurchasedReceiptItem = sequelize.define(
     },
     pricePerAmount: {
       type: DataTypes.INTEGER,
+    },
+    quantity: {
+      type: DataTypes.INTEGER,
+    },
+    registered: {
+      type: DataTypes.BOOLEAN,
     },
   }
 );
