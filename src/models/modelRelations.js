@@ -1,9 +1,8 @@
-import { UserModel } from "./UserModel";
-import { FoodModel } from "./FoodModel";
-import { ReceiptModel } from "./ReceiptModel";
-import { StorageModel } from "./StorageModel";
-import { StorageItems } from "./StorageItems";
-import { PurchaseReceiptItem } from "./PurchaseReceiptItem";
+import { UserModel } from "./UserModel.js";
+import { FoodModel } from "./FoodModel.js";
+import { ReceiptModel } from "./ReceiptModel.js";
+import { StorageModel } from "./StorageModel.js";
+import { PurchaseReceiptItem } from "./PurchaseReceiptItem.js";
 
 UserModel.hasMany(ReceiptModel, {
   foreignKey: "user_id",
