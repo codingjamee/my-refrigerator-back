@@ -19,12 +19,16 @@ export const PurchaseReceiptItem = sequelize.define("purchase_receipt_item", {
   },
   method: {
     type: DataTypes.ENUM,
+    values: ["refrigerated", "frozen", "room_temp"],
   },
   amount: {
     type: DataTypes.INTEGER,
   },
   quantity: {
     type: DataTypes.INTEGER,
+  },
+  unit: {
+    type: DataTypes.STRING(20),
   },
   remain_amount: {
     type: DataTypes.INTEGER,
@@ -35,8 +39,8 @@ export const PurchaseReceiptItem = sequelize.define("purchase_receipt_item", {
   purchase_price: {
     type: DataTypes.INTEGER,
   },
-  expiry_date:{
-    type: DataTypes.DATE
+  expiry_date: {
+    type: DataTypes.DATE,
   },
   registered: {
     type: DataTypes.BOOLEAN,
