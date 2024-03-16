@@ -2,26 +2,22 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "./index.js";
 
 export const ReceiptModel = sequelize.define("receiptModel", {
-  receiptId: {
-    type: DataTypes.UUID,
+  id: {
+    type: DataTypes.INTEGER,
     primaryKey: true,
     allowNull: false,
+    autoIncrement: true,
   },
-  quantity: {
-    type: DataTypes.INTEGER,
+  user_id: {
+    type: DataTypes.UUID,
   },
-  purchasedLocation: {
+  purchase_location: {
     type: DataTypes.STRING(50),
   },
-  purchasedDate: {
+  purchase_date: {
     type: DataTypes.INTEGER,
   },
-  totalPrice: {
+  total_price: {
     type: DataTypes.INTEGER,
-  },
-  registered: {
-    type: DataTypes.BOOLEAN,
   },
 });
-PurchaseReceiptItem.belongsTo(Receipt, { foreignKey: "receiptId" });
-Receipt.hasMany(PurchaseReceiptItem, { foreignKey: "receiptId" });

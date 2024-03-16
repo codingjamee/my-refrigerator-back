@@ -1,32 +1,30 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./index.js";
-import { StoredFoodModel } from "./StoredFoodModel.js";
-import { ReceiptModel } from "./ReceiptModel.js";
 
 //create model represent new table
 export const UserModel = sequelize.define("user", {
-  userId: {
-    type: DataTypes.INTEGER,
+  id: {
+    type: DataTypes.UUID,
     primaryKey: true,
-    autoIncrement: true,
+    defaultValue: DataTypes.UUIDV4,
   },
-  userName: {
+  name: {
     type: DataTypes.STRING(100),
     allowNull: false,
   },
-  profileImageUrl: {
-    type: DataTypes.STRING(100),
+  image_url: {
+    type: DataTypes.STRING(255),
   },
   email: {
-    type: DataTypes.STRING(100),
+    type: DataTypes.STRING(255),
+    allowNull: false,
   },
   password: {
     type: DataTypes.STRING(200),
+    allowNull: false,
   },
 });
 
-UserModel.hasMany(StoredFoodModel, {
-  foreignKey: "userId",
+UserModel.beforeCreate((user, options) => {
+  user.password = hashPassword(user.password);
 });
-UserModel.hasMany(ReceiptModel);
-StoredFoodModel.hasOne(UserModel);
