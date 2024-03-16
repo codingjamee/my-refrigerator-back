@@ -17,13 +17,11 @@ PurchaseReceiptItem.belongsTo(FoodModel, { foreignKey: "food_id" });
 FoodModel.hasMany(PurchaseReceiptItem, {
   foreignKey: "food_id",
 });
+StorageModel.hasMany(PurchaseReceiptItem, { foreignKey: "storage_id" });
+PurchaseReceiptItem.belongsTo(StorageModel, { foreignKey: "storage_id" });
 UserModel.hasMany(StorageModel, {
   foreignKey: "user_id",
 });
 StorageModel.belongsTo(UserModel, {
   foreignKey: "user_id",
 });
-StorageModel.hasMany(StorageItems, { foreignKey: "storage_id" });
-StorageItems.belongsTo(FoodModel, { foreignKey: "food_id" });
-FoodModel.hasMany(StorageItems, { foreignKey: "food_id" });
-StorageItems.belongsTo(StorageModel, { foreignKey: "storage_id" });
