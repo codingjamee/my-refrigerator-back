@@ -16,8 +16,23 @@ export class ReceiptController {
           receipt_id: req.params.receipt_id,
         },
       });
+
+      const receiptItemsWithFoodName = await Promise.all(
+        (receiptInfo.dataValues.receiptItems = receiptItems.map(
+          async (item) => {
+            const food = await FoodModel.findOne({
+              where: { id: item.food_id },
+            });
+            return {
+              ...item.dataValues,
+              food_name: food ? food.name : null,
+              food_category: food ? food.category : null,
+            };
+          }
+        ))
+      );
       if (receiptInfo) {
-        receiptInfo.dataValues.receiptItems = receiptItems;
+        receiptInfo.dataValues.receiptItems = receiptItemsWithFoodName;
         res.json(receiptInfo);
       } else {
         res.status(404).send("Receipt not found!");
