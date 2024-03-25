@@ -1,6 +1,7 @@
 import express from "express";
 import errorMiddleware from "./middleware/errorMiddleware.js";
 import { userRouter } from "./routers/userRouter.js";
+import { receiptRouter } from "./routers/receiptRouter.js";
 import { sequelize } from "./models/index.js";
 
 const app = express();
@@ -15,6 +16,7 @@ app.get("/", (req, res) => {
   res.send("This is my refrigerator project back server");
 });
 app.use("/api/user", userRouter);
+app.use("/api/receipt", receiptRouter);
 
 //
 app.use(errorMiddleware);
