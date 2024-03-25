@@ -15,7 +15,7 @@ export const ReceiptModel = sequelize.define("receiptModel", {
     type: DataTypes.STRING(50),
   },
   purchase_date: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
   },
   total_price: {
     type: DataTypes.INTEGER,

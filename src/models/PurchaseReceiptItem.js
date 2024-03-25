@@ -25,7 +25,7 @@ export const PurchaseReceiptItem = sequelize.define("purchase_receipt_item", {
     type: DataTypes.INTEGER,
   },
   quantity: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING(100),
   },
   unit: {
     type: DataTypes.STRING(20),
