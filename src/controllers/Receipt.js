@@ -17,6 +17,7 @@ export class ReceiptController {
     const { cursor } = req.params;
     const searchStartDate = new Date(year, month - 1, 1);
     const searchEndDate = new Date(year, month, 0);
+    const limit = 5;
 
     const whereCondition = {
       purchase_date: {
@@ -32,7 +33,7 @@ export class ReceiptController {
 
     const foundReceipts = await ReceiptModel.findAll({
       where: whereCondition,
-      order: [["purchase_date", "ASC"]],
+      order: [["purchase_date", "DESC"]],
       limit: limit + 1,
     });
 
@@ -146,6 +147,57 @@ export class ReceiptController {
       console.log(err);
       res.status(500).send("cannot post receipt data!");
       // next(err)
+    }
+  }
+  static async putReceipt(req, res, next) {
+    const requestId = req.params.receipt_id;
+    const registeredBool = req.body.registered;
+
+    try {
+      const updateReceipt = await PurchaseReceiptItem.update(
+        {
+          registered: registeredBool,
+        },
+        {
+          where: {
+            receipt_id: requestId,
+          },
+        }
+      );
+
+      if (updateReceipt[0] > 0) {
+        return res
+          .status(200)
+          .json({ message: "receipt registered status updated successfully." });
+      } else {
+        return res.status(404).json({
+          message: "update receipt data not found.",
+        });
+      }
+    } catch (err) {
+      console.log("Error!!! when update receipt status", err);
+      return res
+        .status(500)
+        .json({ message: "Server Error!!! when update receipt status" });
+    }
+  }
+  static async deleteReceipt(req, res, next) {
+    const requestId = req.params.receipt_id;
+    try {
+      const deleteResult = await PurchaseReceiptItem.destroy({
+        where: { requestId },
+      });
+
+      if (deleteResult > 0) {
+        return res
+          .status(200)
+          .json({ message: "Receipt deleted successfully." });
+      } else {
+        return res.status(404).json({ message: "Receipt not found." });
+      }
+    } catch (error) {
+      console.error("Error deleting receipt:", error);
+      return res.status(500).json({ message: "Error deleting receipt." });
     }
   }
 }
