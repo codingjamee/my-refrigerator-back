@@ -1,6 +1,5 @@
 import { FoodModel } from "../models/FoodModel";
 import { PurchaseReceiptItem } from "../models/PurchaseReceiptItem";
-import { StoredFoodModel } from "../models/StoredFoodModel";
 
 const getSort = {
   price: "purchase_price",
@@ -60,14 +59,30 @@ export class StoredFoodController {
     }
   }
 
+  //food id 상세 데이터 조회
   static async getStoredFood(req, res, next) {
+    const foodId = req.params.food_id;
     try {
-      const storedFoodInfo = StoredFoodModel.find({
+      const storedFoodInfo = await PurchaseReceiptItem.findOne({
+        include: [
+          {
+            model: FoodModel,
+            where: {
+              food_id: foodId,
+            },
+            required: true,
+          },
+        ],
+      });
+
+      const storedFoodName = await FoodModel.findOne({
         where: {
-          food_id: 123123,
-          // food_id: req.params.foodId,
+          id: storedFoodInfo.food_id,
         },
       });
+      storedFoodInfo.dataValues.name = storedFoodName.name;
+      storedFoodInfo.dataValues.category = storedFoodName.category;
+
       res.json(storedFoodInfo);
     } catch (err) {
       console.log(err);
