@@ -92,9 +92,57 @@ export class StoredFoodController {
   }
 
   static async postStoredFood(req, res, next) {
+    const requestFoodId = req?.params.food_id;
+    const requestBody = req.body;
+    const transaction = await sequelize.transaction();
+
     try {
-      const foodData = await FoodModel.create({});
+      let foodData;
+      if (requestFoodId) {
+        await FoodModel.update(
+          {
+            name: requestBody.name,
+            category: requestBody.category,
+          },
+          {
+            where: {
+              id: requestFoodId,
+            },
+          },
+          { transaction }
+        );
+        await PurchaseReceiptItem.update(
+          { ...requestBody },
+          {
+            where: {
+              food_id: requestFoodId,
+            },
+          },
+          { transaction }
+        );
+        await transaction.commit();
+      } else {
+        foodData = await FoodModel.create(
+          {
+            name: item.name,
+            category: item.category,
+          },
+          { transaction }
+        );
+        await PurchaseReceiptItem.create({
+          ...requestBody,
+          food_id: foodData.id,
+        });
+        await transaction.commit();
+      }
+
+      return res.status(201).json({
+        message: "성공적으로 저장되었습니다",
+        foodId: requestFoodId || foodData.id,
+      });
     } catch (err) {
+      await transaction.rollback();
+      res.status(500).send("cannot post food data!");
       console.log(err);
     }
   }
