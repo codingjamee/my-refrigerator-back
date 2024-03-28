@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { StoredFoodController } from "../controllers/StoredFood";
 
-const storedFoodRouter = Router();
+export const storedFoodRouter = Router();
 
+storedFoodRouter.get("/", StoredFoodController.getStoredFoods);
 storedFoodRouter.get("/:food_id", StoredFoodController.getStoredFood);
-storedFoodRouter.post("/", StoredFoodController.postStoredFood);
+storedFoodRouter.post("/:food_id", StoredFoodController.postStoredFood);
+storedFoodRouter.put("/:food_id", StoredFoodController.putStoredFood);

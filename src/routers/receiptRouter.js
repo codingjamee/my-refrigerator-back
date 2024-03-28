@@ -5,3 +5,5 @@ export const receiptRouter = Router();
 
 receiptRouter.get("/:receipt_id", ReceiptController.getReceipt);
 receiptRouter.post("/", ReceiptController.postReceipt);
+receiptRouter.put("/:receipt_id", ReceiptController.putReceipt);
+receiptRouter.delete("/:receipt_id", ReceiptController.deleteReceipt);
