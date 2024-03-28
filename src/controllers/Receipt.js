@@ -94,12 +94,12 @@ export class ReceiptController {
         receiptInfo.dataValues.receipt_items = receiptItemsWithFoodName;
         res.json(receiptInfo);
       } else {
-        res.status(404).send("Receipt not found!");
+        return res.status(404).send("Receipt not found!");
       }
     } catch (err) {
       console.log(err);
       // next(err)
-      res.status(500).send("cannot get receipt data!");
+      return res.status(500).send("cannot get receipt data!");
     }
   }
 
@@ -139,13 +139,14 @@ export class ReceiptController {
       );
 
       await transaction.commit();
-      res.status(201).json({
+      return res.status(201).json({
         message: "영수증 저장이 정상적으로 처리되었습니다.",
         receipt_id: receiptData.id,
       });
     } catch (err) {
+      await transaction.rollback();
       console.log(err);
-      res.status(500).send("cannot post receipt data!");
+      return res.status(500).send("cannot post receipt data!");
       // next(err)
     }
   }
