@@ -1,39 +1,55 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./index.js";
 
-export const PurchaseReceiptItem = sequelize.define(
-  "purchase_receipt_item",
+export const PurchasedFood = sequelize.define(
+  "purchased_food",
   {
     id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       primaryKey: true,
+      allowNull: false,
       autoIncrement: true,
+    },
+    user_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: "user",
+        key: "id",
+      },
     },
     storage_id: {
       type: DataTypes.INTEGER,
+      references: {
+        model: "storage_info",
+        key: "id",
+      },
     },
     receipt_id: {
       type: DataTypes.INTEGER,
+      references: {
+        model: "receipt",
+        key: "id",
+      },
     },
     food_id: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "food",
+        key: "id",
+      },
     },
-    method: {
-      type: DataTypes.ENUM,
-      values: ["refrigerated", "frozen", "room_temp"],
+    purchase_item_id: {
+      type: DataTypes.INTEGER,
     },
     amount: {
       type: DataTypes.INTEGER,
+      allowNull: false,
     },
     quantity: {
-      type: DataTypes.STRING(100),
-    },
-    unit: {
-      type: DataTypes.STRING(20),
-    },
-    remain_amount: {
       type: DataTypes.INTEGER,
+      allowNull: false,
     },
     image_url: {
       type: DataTypes.STRING(255),
@@ -46,9 +62,12 @@ export const PurchaseReceiptItem = sequelize.define(
     },
     registered: {
       type: DataTypes.BOOLEAN,
+      allowNull: false,
     },
   },
   {
     indexes: [{ fields: ["expiry_date"] }, { fields: ["purchase_price"] }],
   }
 );
+
+export default PurchasedFood;
