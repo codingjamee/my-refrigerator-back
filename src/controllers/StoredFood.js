@@ -98,4 +98,50 @@ export class StoredFoodController {
       console.log(err);
     }
   }
+
+  static async putStoredFood(req, res, next) {
+    const requestId = req.params.food_id;
+    const requestUpdateData = req.body;
+    const updateData = (() => {
+      const data = {};
+      if (requestUpdateData.name) {
+        data.name = requestUpdateData.name;
+      }
+      if (requestUpdateData.category)
+        data.category = requestUpdateData.category;
+      {
+      }
+      return {
+        need: Object.keys(data).length > 0,
+        data,
+      };
+    })();
+
+    try {
+      await PurchaseReceiptItem.update(
+        { ...requestUpdateData },
+        {
+          where: { food_id: requestId },
+        }
+      );
+
+      if (updateData.need) {
+        await FoodModel.update(
+          { ...updateData.data },
+          {
+            where: { food_id: requestId },
+          }
+        );
+      }
+
+      return res.status(200).json({
+        message: "food data updated successfully",
+      });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        message: "Serever Error!!! when updating food data!",
+      });
+    }
+  }
 }
