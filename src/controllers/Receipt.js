@@ -1,6 +1,6 @@
 import { Receipt } from "../models/Receipt.js";
 import { Food } from "../models/Food.js";
-import { PurchaseReceiptItem } from "../models/PurchaseReceiptItem.js";
+import { PurchasedFood } from "../models/PurchasedFood.js";
 import { sequelize } from "../models/index.js";
 import { Op } from "sequelize";
 
@@ -34,6 +34,7 @@ export class ReceiptController {
     const foundReceipts = await Receipt.findAll({
       where: whereCondition,
       order: [["purchase_date", "DESC"]],
+      attributes: ["id", "purchase_location", "purchase_date", "total_price"],
       limit: limit + 1,
     });
 
@@ -43,18 +44,6 @@ export class ReceiptController {
       : null;
 
     if (hasNextPage) foundReceipts.pop();
-
-    const receiptItemCount = await Promise.all(
-      foundReceipts.map(async (receipt) => {
-        return await PurchaseReceiptItem.count({
-          where: { receipt_id: receipt.id },
-        });
-      })
-    );
-
-    foundReceipts.forEach((receipt, index) => {
-      receipt.dataValues.quantity = receiptItemCount[index];
-    });
 
     return res.json({
       receipts: foundReceipts,
@@ -70,25 +59,23 @@ export class ReceiptController {
           id: req.params.receipt_id,
         },
       });
-      const receipt_items = await PurchaseReceiptItem.findAll({
+      const receipt_items = await PurchasedFood.findAll({
         where: {
           receipt_id: req.params.receipt_id,
         },
       });
 
       const receiptItemsWithFoodName = await Promise.all(
-        (receiptInfo.dataValues.receipt_items = receipt_items.map(
-          async (item) => {
-            const food = await Food.findOne({
-              where: { id: item.food_id },
-            });
-            return {
-              ...item.dataValues,
-              food_name: food ? food.name : null,
-              food_category: food ? food.category : null,
-            };
-          }
-        ))
+        receipt_items.map(async (item) => {
+          const food = await Food.findOne({
+            where: { id: item.food_id },
+          });
+          return {
+            ...item.dataValues,
+            food_name: food ? food.name : null,
+            food_category: food ? food.category : null,
+          };
+        })
       );
       if (receiptInfo) {
         receiptInfo.dataValues.receipt_items = receiptItemsWithFoodName;
@@ -126,7 +113,7 @@ export class ReceiptController {
             },
             { transaction }
           );
-          await PurchaseReceiptItem.create(
+          await PurchasedFood.create(
             {
               ...item,
               receipt_id: receiptData.id,
@@ -155,7 +142,7 @@ export class ReceiptController {
     const registeredBool = req.body.registered;
 
     try {
-      const updateReceipt = await PurchaseReceiptItem.update(
+      const updateReceipt = await PurchasedFood.update(
         {
           registered: registeredBool,
         },
