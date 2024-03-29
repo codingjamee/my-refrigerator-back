@@ -1,5 +1,5 @@
-import { FoodModel } from "../models/FoodModel";
-import { PurchaseReceiptItem } from "../models/PurchaseReceiptItem";
+import { Food } from "../models/Food";
+import { PurchaseReceiptItem } from "../models/PurchasedFood";
 
 const getSort = {
   price: "purchase_price",
@@ -66,7 +66,7 @@ export class StoredFoodController {
       const storedFoodInfo = await PurchaseReceiptItem.findOne({
         include: [
           {
-            model: FoodModel,
+            model: Food,
             where: {
               food_id: foodId,
             },
@@ -75,7 +75,7 @@ export class StoredFoodController {
         ],
       });
 
-      const storedFoodName = await FoodModel.findOne({
+      const storedFoodName = await Food.findOne({
         where: {
           id: storedFoodInfo.food_id,
         },
@@ -99,7 +99,7 @@ export class StoredFoodController {
     try {
       let foodData;
       if (requestFoodId) {
-        await FoodModel.update(
+        await Food.update(
           {
             name: requestBody.name,
             category: requestBody.category,
@@ -122,7 +122,7 @@ export class StoredFoodController {
         );
         await transaction.commit();
       } else {
-        foodData = await FoodModel.create(
+        foodData = await Food.create(
           {
             name: item.name,
             category: item.category,
@@ -174,7 +174,7 @@ export class StoredFoodController {
       );
 
       if (updateData.need) {
-        await FoodModel.update(
+        await Food.update(
           { ...updateData.data },
           {
             where: { food_id: requestId },
@@ -190,6 +190,16 @@ export class StoredFoodController {
       return res.status(500).json({
         message: "Serever Error!!! when updating food data!",
       });
+    }
+  }
+  static async deleteStoredFood(req, res, next) {
+    const requestId = req.params.food_id;
+    try {
+      const deleteResult = await PurchaseReceiptItem.destroy({
+        where: {},
+      });
+    } catch (err) {
+      console.log(err);
     }
   }
 }

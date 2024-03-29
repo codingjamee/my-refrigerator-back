@@ -1,5 +1,5 @@
-import { ReceiptModel } from "../models/ReceiptModel.js";
-import { FoodModel } from "../models/FoodModel.js";
+import { Receipt } from "../models/Receipt.js";
+import { Food } from "../models/Food.js";
 import { PurchaseReceiptItem } from "../models/PurchaseReceiptItem.js";
 import { sequelize } from "../models/index.js";
 import { Op } from "sequelize";
@@ -31,7 +31,7 @@ export class ReceiptController {
       whereCondition.purchase_date[Op.gt] = lastReceiptDate;
     }
 
-    const foundReceipts = await ReceiptModel.findAll({
+    const foundReceipts = await Receipt.findAll({
       where: whereCondition,
       order: [["purchase_date", "DESC"]],
       limit: limit + 1,
@@ -65,7 +65,7 @@ export class ReceiptController {
   //영수증 상세
   static async getReceipt(req, res, next) {
     try {
-      const receiptInfo = await ReceiptModel.findOne({
+      const receiptInfo = await Receipt.findOne({
         where: {
           id: req.params.receipt_id,
         },
@@ -79,7 +79,7 @@ export class ReceiptController {
       const receiptItemsWithFoodName = await Promise.all(
         (receiptInfo.dataValues.receipt_items = receipt_items.map(
           async (item) => {
-            const food = await FoodModel.findOne({
+            const food = await Food.findOne({
               where: { id: item.food_id },
             });
             return {
@@ -108,7 +108,7 @@ export class ReceiptController {
     const { year, month, date } = parseDateString(purchase_date);
     try {
       const transaction = await sequelize.transaction();
-      const receiptData = new ReceiptModel(
+      const receiptData = new Receipt(
         {
           purchase_location,
           purchase_date: new Date(year, month - 1, date),
@@ -119,7 +119,7 @@ export class ReceiptController {
       await receiptData.save();
       await Promise.all(
         receipt_items.map(async (item) => {
-          const foodData = await FoodModel.create(
+          const foodData = await Food.create(
             {
               name: item.food_name,
               category: item.food_category,
@@ -185,10 +185,11 @@ export class ReceiptController {
   static async deleteReceipt(req, res, next) {
     const requestId = req.params.receipt_id;
     try {
-      const deleteResult = await PurchaseReceiptItem.destroy({
+      const deleteResult = await Receipt.destroy({
         where: { requestId },
       });
 
+      //삭제했을 때 PurchaseReceiptItem의 처리
       if (deleteResult > 0) {
         return res
           .status(200)

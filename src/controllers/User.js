@@ -1,8 +1,8 @@
-import { UserModel } from "../models/UserModel.js";
+import { User } from "../models/User.js";
 
 class UserController {
   static async getUser({ userId }) {
-    return UserModel.findOne({ where: { userId } });
+    return User.findOne({ where: { userId } });
   }
 }
 
