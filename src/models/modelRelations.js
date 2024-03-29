@@ -1,26 +1,42 @@
-import { UserModel } from "./UserModel.js";
-import { FoodModel } from "./FoodModel.js";
-import { ReceiptModel } from "./ReceiptModel.js";
-import { StorageModel } from "./StorageModel.js";
-import { PurchaseReceiptItem } from "./PurchaseReceiptItem.js";
+import { User } from "./User.js";
+import { Food } from "./Food.js";
+import { Receipt } from "./Receipt.js";
+import { Storage } from "./Storage.js";
+import { PurchasedFood } from "./PurchasedFood.js";
+import StorageInfo from "./StorageInfo.js";
 
-UserModel.hasMany(ReceiptModel, {
+User.hasMany(Receipt, {
   foreignKey: "user_id",
 });
-ReceiptModel.belongsTo(UserModel, { foreignKey: "user_id" });
-ReceiptModel.hasMany(PurchaseReceiptItem, { foreignKey: "receipt_id" });
-PurchaseReceiptItem.belongsTo(ReceiptModel, {
+User.hasMany(PurchasedFood, {
+  foreignKey: "user_id",
+});
+User.hasMany(Storage, {
+  foreignKey: "user_id",
+});
+
+Receipt.belongsTo(User, { foreignKey: "user_id" });
+Receipt.hasMany(PurchasedFood, { foreignKey: "receipt_id" });
+
+PurchasedFood.belongsTo(User, {
+  foreignKey: "user_id",
+});
+PurchasedFood.belongsTo(Receipt, {
   foreignKey: "receipt_id",
 });
-PurchaseReceiptItem.belongsTo(FoodModel, { foreignKey: "food_id" });
-FoodModel.hasMany(PurchaseReceiptItem, {
+PurchasedFood.belongsTo(StorageInfo, { foreignKey: "storage_info_id" });
+PurchasedFood.belongsTo(Food, { foreignKey: "food_id" });
+
+Food.hasMany(PurchasedFood, {
   foreignKey: "food_id",
 });
-StorageModel.hasMany(PurchaseReceiptItem, { foreignKey: "storage_id" });
-PurchaseReceiptItem.belongsTo(StorageModel, { foreignKey: "storage_id" });
-UserModel.hasMany(StorageModel, {
+
+Storage.hasMany(StorageInfo, {
+  foreignKey: "storage_id",
+});
+Storage.belongsTo(User, {
   foreignKey: "user_id",
 });
-StorageModel.belongsTo(UserModel, {
-  foreignKey: "user_id",
-});
+
+StorageInfo.hasMany(PurchasedFood, { foreignKey: "storage_info_id" });
+StorageInfo.belongsTo(Storage, { foreignKey: "storage_id" });
