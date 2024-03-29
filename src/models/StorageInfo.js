@@ -1,3 +1,6 @@
+import { DataTypes } from "sequelize";
+import { sequelize } from "./index.js";
+
 const StorageInfo = sequelize.define("storage_info", {
   id: {
     type: DataTypes.INTEGER,
