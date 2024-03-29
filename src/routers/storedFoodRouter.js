@@ -7,3 +7,4 @@ storedFoodRouter.get("/", StoredFoodController.getStoredFoods);
 storedFoodRouter.get("/:food_id", StoredFoodController.getStoredFood);
 storedFoodRouter.post("/:food_id", StoredFoodController.postStoredFood);
 storedFoodRouter.put("/:food_id", StoredFoodController.putStoredFood);
+storedFoodRouter.delete("/:food_id", StoredFoodController.deleteStoredFood);
