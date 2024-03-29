@@ -3,6 +3,7 @@ import { Food } from "../models/Food.js";
 import { PurchasedFood } from "../models/PurchasedFood.js";
 import { sequelize } from "../models/index.js";
 import { Op } from "sequelize";
+import StorageInfo from "../models/StorageInfo.js";
 
 const parseDateString = (YM) => {
   const [year, month, date] = YM.split(".").map(Number);
@@ -13,8 +14,8 @@ const parseDateString = (YM) => {
 export class ReceiptController {
   //특정 월의 영수증들 가져오기
   static async getReceipts(req, res, next) {
-    const { year, month } = parseDateString(req.params.month);
-    const { cursor } = req.params;
+    const { year, month } = parseDateString(req.query.month);
+    const { cursor } = req.query;
     const searchStartDate = new Date(year, month - 1, 1);
     const searchEndDate = new Date(year, month, 0);
     const limit = 5;
@@ -27,8 +28,7 @@ export class ReceiptController {
     };
 
     if (cursor) {
-      lastReceiptDate = new Date(cursor);
-      whereCondition.purchase_date[Op.gt] = lastReceiptDate;
+      whereCondition.id[Op.gt] = cursor;
     }
 
     const foundReceipts = await Receipt.findAll({
@@ -39,12 +39,23 @@ export class ReceiptController {
     });
 
     const hasNextPage = foundReceipts.length === limit + 1;
-    const nextCursor = hasNextPage
-      ? foundReceipts[limit - 1].purchase_date.toISOString()
-      : null;
+    console.log(hasNextPage);
+    const nextCursor = hasNextPage ? foundReceipts[limit - 1].id : null;
 
     if (hasNextPage) foundReceipts.pop();
+    const receiptItemCount = await Promise.all(
+      foundReceipts.map(async (receipt) => {
+        return await PurchasedFood.count({
+          where: { receipt_id: receipt.id },
+        });
+      })
+    );
 
+    foundReceipts.forEach((receipt, index) => {
+      receipt.dataValues.quantity = receiptItemCount[index];
+    });
+
+    console.log(nextCursor);
     return res.json({
       receipts: foundReceipts,
       nextCursor: nextCursor,
@@ -53,33 +64,49 @@ export class ReceiptController {
 
   //영수증 상세
   static async getReceipt(req, res, next) {
+    const requestId = req.params.receipt_id;
+    console.log(req.params);
     try {
       const receiptInfo = await Receipt.findOne({
         where: {
-          id: req.params.receipt_id,
+          id: requestId,
         },
+        attributes: ["id", "purchase_location", "purchase_date", "total_price"],
       });
-      const receipt_items = await PurchasedFood.findAll({
+      const receiptItems = await PurchasedFood.findAll({
         where: {
-          receipt_id: req.params.receipt_id,
+          id: requestId,
         },
+        attributes: [
+          "id",
+          "image_url",
+          "amount",
+          "purchase_price",
+          "registered",
+        ],
       });
 
       const receiptItemsWithFoodName = await Promise.all(
-        receipt_items.map(async (item) => {
+        receiptItems.map(async (item) => {
           const food = await Food.findOne({
             where: { id: item.food_id },
           });
+          const storageInfo = await StorageInfo.findOne({
+            where: { id: item.storage_id },
+          });
           return {
             ...item.dataValues,
-            food_name: food ? food.name : null,
-            food_category: food ? food.category : null,
+            method: storageInfo.method,
+            name: food ? food.name : null,
+            category: food ? food.category : null,
           };
         })
       );
+      console.log({ receiptItemsWithFoodName });
       if (receiptInfo) {
         receiptInfo.dataValues.receipt_items = receiptItemsWithFoodName;
-        res.json(receiptInfo);
+        console.log({ receiptInfo });
+        return res.status(200).json(receiptInfo);
       } else {
         return res.status(404).send("Receipt not found!");
       }
@@ -91,15 +118,18 @@ export class ReceiptController {
   }
 
   static async postReceipt(req, res, next) {
-    const { total_price, purchase_date, receipt_items } = req.body;
-    const { year, month, date } = parseDateString(purchase_date);
+    const { total_price, purchase_date, receipt_items, purchase_location } =
+      req.body;
+    console.log("request body!!!", req.body);
+    console.log(purchase_date);
+    const transaction = await sequelize.transaction();
     try {
-      const transaction = await sequelize.transaction();
       const receiptData = new Receipt(
         {
-          purchase_location,
-          purchase_date: new Date(year, month - 1, date),
           total_price,
+          purchase_date,
+          receipt_items,
+          purchase_location,
         },
         { transaction }
       );
@@ -108,7 +138,7 @@ export class ReceiptController {
         receipt_items.map(async (item) => {
           const foodData = await Food.create(
             {
-              name: item.food_name,
+              name: item.name,
               category: item.food_category,
             },
             { transaction }
@@ -116,6 +146,7 @@ export class ReceiptController {
           await PurchasedFood.create(
             {
               ...item,
+              user_id: "7934be3c-f9e9-4fa6-b12c-e7d69b1cb5aa", //추후 변경
               receipt_id: receiptData.id,
               food_id: foodData.id,
               registered: false,
