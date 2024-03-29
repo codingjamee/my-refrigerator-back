@@ -1,8 +1,7 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./index.js";
 
-//create model represent new table
-export const UserModel = sequelize.define("user", {
+export const User = sequelize.define("user", {
   id: {
     type: DataTypes.UUID,
     primaryKey: true,
@@ -25,6 +24,6 @@ export const UserModel = sequelize.define("user", {
   },
 });
 
-UserModel.beforeCreate((user, options) => {
+User.beforeCreate((user, options) => {
   user.password = hashPassword(user.password);
 });

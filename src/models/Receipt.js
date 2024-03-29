@@ -1,8 +1,8 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./index.js";
 
-export const ReceiptModel = sequelize.define(
-  "receiptModel",
+export const Receipt = sequelize.define(
+  "receipt",
   {
     id: {
       type: DataTypes.INTEGER,

@@ -1,7 +1,7 @@
 import { sequelize } from "./index.js";
 import { DataTypes } from "sequelize";
 
-export const FoodModel = sequelize.define("food", {
+export const Food = sequelize.define("food", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
