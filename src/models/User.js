@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "./index.js";
+import bcrypt from "bcrypt";
 
 export const User = sequelize.define("user", {
   id: {
@@ -24,6 +25,9 @@ export const User = sequelize.define("user", {
   },
 });
 
-User.beforeCreate((user, options) => {
-  user.password = hashPassword(user.password);
+User.beforeSave(async (user, options) => {
+  if (user.changed("password")) {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    user.password = hashedPassword;
+  }
 });
