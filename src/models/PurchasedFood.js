@@ -18,7 +18,7 @@ export const PurchasedFood = sequelize.define(
         key: "id",
       },
     },
-    storage_id: {
+    storage_info_id: {
       type: DataTypes.INTEGER,
       references: {
         model: "storage_info",
@@ -46,6 +46,7 @@ export const PurchasedFood = sequelize.define(
     amount: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 0,
     },
     quantity: {
       type: DataTypes.INTEGER,
@@ -69,5 +70,3 @@ export const PurchasedFood = sequelize.define(
     indexes: [{ fields: ["expiry_date"] }, { fields: ["purchase_price"] }],
   }
 );
-
-export default PurchasedFood;

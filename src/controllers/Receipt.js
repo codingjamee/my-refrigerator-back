@@ -65,7 +65,6 @@ export class ReceiptController {
   //영수증 상세
   static async getReceipt(req, res, next) {
     const requestId = req.params.receipt_id;
-    console.log(req.params);
     try {
       const receiptInfo = await Receipt.findOne({
         where: {
@@ -75,7 +74,7 @@ export class ReceiptController {
       });
       const receiptItems = await PurchasedFood.findAll({
         where: {
-          id: requestId,
+          receipt_id: requestId,
         },
         attributes: [
           "id",
@@ -83,28 +82,24 @@ export class ReceiptController {
           "amount",
           "purchase_price",
           "registered",
+          "food_id",
         ],
       });
-
       const receiptItemsWithFoodName = await Promise.all(
         receiptItems.map(async (item) => {
           const food = await Food.findOne({
             where: { id: item.food_id },
           });
-          const storageInfo = await StorageInfo.findOne({
-            where: { id: item.storage_id },
-          });
           return {
             ...item.dataValues,
-            method: storageInfo.method,
             name: food ? food.name : null,
             category: food ? food.category : null,
           };
         })
       );
-      console.log({ receiptItemsWithFoodName });
       if (receiptInfo) {
         receiptInfo.dataValues.receipt_items = receiptItemsWithFoodName;
+        receiptItemsWithFoodName.forEach((item) => delete item.food_id);
         console.log({ receiptInfo });
         return res.status(200).json(receiptInfo);
       } else {
@@ -146,7 +141,7 @@ export class ReceiptController {
           await PurchasedFood.create(
             {
               ...item,
-              user_id: "7934be3c-f9e9-4fa6-b12c-e7d69b1cb5aa", //추후 변경
+              user_id: "6ed2ae03-61b7-4bc3-b08f-3030e403ab0e", //추후 변경
               receipt_id: receiptData.id,
               food_id: foodData.id,
               registered: false,
