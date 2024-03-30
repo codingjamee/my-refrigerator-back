@@ -3,7 +3,6 @@ import { Food } from "../models/Food.js";
 import { PurchasedFood } from "../models/PurchasedFood.js";
 import { sequelize } from "../models/index.js";
 import { Op } from "sequelize";
-import StorageInfo from "../models/StorageInfo.js";
 
 const parseDateString = (YM) => {
   const [year, month, date] = YM.split(".").map(Number);
@@ -27,19 +26,23 @@ export class ReceiptController {
       },
     };
 
-    if (cursor) {
-      whereCondition.id[Op.gt] = cursor;
+    if (cursor && cursor !== "1") {
+      whereCondition.id = {
+        [Op.lt]: Number(cursor),
+      };
     }
 
     const foundReceipts = await Receipt.findAll({
       where: whereCondition,
-      order: [["purchase_date", "DESC"]],
+      order: [
+        ["purchase_date", "DESC"],
+        ["id", "DESC"],
+      ],
       attributes: ["id", "purchase_location", "purchase_date", "total_price"],
       limit: limit + 1,
     });
 
     const hasNextPage = foundReceipts.length === limit + 1;
-    console.log(hasNextPage);
     const nextCursor = hasNextPage ? foundReceipts[limit - 1].id : null;
 
     if (hasNextPage) foundReceipts.pop();
@@ -55,7 +58,6 @@ export class ReceiptController {
       receipt.dataValues.quantity = receiptItemCount[index];
     });
 
-    console.log(nextCursor);
     return res.json({
       receipts: foundReceipts,
       nextCursor: nextCursor,
@@ -134,14 +136,15 @@ export class ReceiptController {
           const foodData = await Food.create(
             {
               name: item.name,
-              category: item.food_category,
+              category: item.category,
             },
             { transaction }
           );
           await PurchasedFood.create(
             {
               ...item,
-              user_id: "6ed2ae03-61b7-4bc3-b08f-3030e403ab0e", //추후 변경
+              user_id: "57d4911b-c179-4b9e-bcaa-4c05bf498b05", //추후 변경
+              amount: item.amount || 0,
               receipt_id: receiptData.id,
               food_id: foodData.id,
               registered: false,
