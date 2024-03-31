@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize";
 import * as dotenv from "dotenv";
+
 dotenv.config();
 
 // mysql로 연결
@@ -10,6 +11,7 @@ export const sequelize = new Sequelize(
   {
     dialect: "mysql",
     host: "mysql",
+    timezone: "+09:00", //한국시간대 설정
     define: {
       freezeTableName: true,
     },
