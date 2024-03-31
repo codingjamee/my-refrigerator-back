@@ -1,5 +1,6 @@
 import { Food } from "../models/Food.js";
 import { PurchasedFood } from "../models/PurchasedFood.js";
+import StorageInfo from "../models/StorageInfo.js";
 import { sequelize } from "../models/index.js";
 
 const getSort = {
@@ -93,6 +94,11 @@ export class StoredFoodController {
 
     try {
       let foodData;
+      const storageInfo = await StorageInfo.create({
+        method: requestBody.method,
+        remaining_amount: requestBody.amount,
+        remaining_quantity: requestBody.quantity,
+      });
       if (requestFoodId) {
         await Food.update(
           {
@@ -107,7 +113,7 @@ export class StoredFoodController {
           { transaction }
         );
         await PurchasedFood.update(
-          { ...requestBody },
+          { ...requestBody, storage_info_id: storageInfo.id },
           {
             where: {
               food_id: requestFoodId,
@@ -127,6 +133,7 @@ export class StoredFoodController {
         await PurchasedFood.create({
           ...requestBody,
           food_id: foodData.id,
+          storage_info_id: storageInfo.id,
         });
         await transaction.commit();
       }
