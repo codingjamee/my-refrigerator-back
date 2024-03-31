@@ -45,12 +45,11 @@ export const PurchasedFood = sequelize.define(
     },
     amount: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       defaultValue: 0,
     },
     quantity: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      defaultValue: 1,
     },
     image_url: {
       type: DataTypes.STRING(255),
