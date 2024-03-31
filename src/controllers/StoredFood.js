@@ -1,5 +1,6 @@
-import { Food } from "../models/Food";
-import { PurchaseReceiptItem } from "../models/PurchasedFood";
+import { Food } from "../models/Food.js";
+import { PurchasedFood } from "../models/PurchasedFood.js";
+import { sequelize } from "../models/index.js";
 
 const getSort = {
   price: "purchase_price",
@@ -28,7 +29,7 @@ export class StoredFoodController {
     }
 
     try {
-      const foundFoods = await PurchaseReceiptItem.findAll({
+      const foundFoods = await PurchasedFood.findAll({
         where: whereCondition,
         order: getOrder(),
         limit: limit + 1,
@@ -63,18 +64,12 @@ export class StoredFoodController {
   static async getStoredFood(req, res, next) {
     const foodId = req.params.food_id;
     try {
-      const storedFoodInfo = await PurchaseReceiptItem.findOne({
-        include: [
-          {
-            model: Food,
-            where: {
-              food_id: foodId,
-            },
-            required: true,
-          },
-        ],
+      const storedFoodInfo = await PurchasedFood.findOne({
+        where: {
+          id: foodId,
+        },
+        required: true,
       });
-
       const storedFoodName = await Food.findOne({
         where: {
           id: storedFoodInfo.food_id,
@@ -83,11 +78,11 @@ export class StoredFoodController {
       storedFoodInfo.dataValues.name = storedFoodName.name;
       storedFoodInfo.dataValues.category = storedFoodName.category;
 
-      res.json(storedFoodInfo);
+      return res.json(storedFoodInfo);
     } catch (err) {
       console.log(err);
       // next(err)
-      res.status(500).send("cannot get stored food data!");
+      return res.status(500).send("cannot get stored food data!");
     }
   }
 
@@ -111,7 +106,7 @@ export class StoredFoodController {
           },
           { transaction }
         );
-        await PurchaseReceiptItem.update(
+        await PurchasedFood.update(
           { ...requestBody },
           {
             where: {
@@ -129,7 +124,7 @@ export class StoredFoodController {
           },
           { transaction }
         );
-        await PurchaseReceiptItem.create({
+        await PurchasedFood.create({
           ...requestBody,
           food_id: foodData.id,
         });
@@ -166,7 +161,7 @@ export class StoredFoodController {
     })();
 
     try {
-      await PurchaseReceiptItem.update(
+      await PurchasedFood.update(
         { ...requestUpdateData },
         {
           where: { food_id: requestId },
@@ -195,7 +190,7 @@ export class StoredFoodController {
   static async deleteStoredFood(req, res, next) {
     const requestId = req.params.food_id;
     try {
-      const deleteResult = await PurchaseReceiptItem.destroy({
+      const deleteResult = await PurchasedFood.destroy({
         where: {},
       });
     } catch (err) {
