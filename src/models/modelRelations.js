@@ -1,7 +1,7 @@
 import { User } from "./User.js";
 import { Food } from "./Food.js";
 import { Receipt } from "./Receipt.js";
-import { Storage } from "./Storage.js";
+import Storage from "./Storage.js";
 import { PurchasedFood } from "./PurchasedFood.js";
 import StorageInfo from "./StorageInfo.js";
 
