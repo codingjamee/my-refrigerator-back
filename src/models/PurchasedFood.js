@@ -60,6 +60,12 @@ export const PurchasedFood = sequelize.define(
     expiry_date: {
       type: DataTypes.DATE,
     },
+    purchase_location: {
+      type: DataTypes.STRING(50),
+    },
+    purchase_date: {
+      type: DataTypes.DATE,
+    },
     registered: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
