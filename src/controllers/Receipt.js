@@ -85,6 +85,8 @@ export class ReceiptController {
           "purchase_price",
           "registered",
           "food_id",
+          "purchase_location",
+          "purchase_date",
         ],
       });
       const receiptItemsWithFoodName = await Promise.all(
@@ -118,11 +120,11 @@ export class ReceiptController {
     const { total_price, purchase_date, receipt_items, purchase_location } =
       req.body;
     console.log("request body!!!", req.body);
-    console.log(purchase_date);
     const transaction = await sequelize.transaction();
     try {
       const receiptData = new Receipt(
         {
+          user_id: "da13b21f-49f9-4bc0-9e1b-f64ca37c6e91",
           total_price,
           purchase_date,
           receipt_items,
@@ -143,11 +145,13 @@ export class ReceiptController {
           await PurchasedFood.create(
             {
               ...item,
-              user_id: "57d4911b-c179-4b9e-bcaa-4c05bf498b05", //추후 변경
+              user_id: "da13b21f-49f9-4bc0-9e1b-f64ca37c6e91", //추후 변경
               amount: item.amount || 0,
               receipt_id: receiptData.id,
               food_id: foodData.id,
               registered: false,
+              purchase_location: purchase_location,
+              purchase_date: purchase_date,
             },
             { transaction }
           );
