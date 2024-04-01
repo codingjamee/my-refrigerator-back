@@ -69,6 +69,15 @@ export class StoredFoodController {
         where: {
           id: foodId,
         },
+        attributes: [
+          "food_id",
+          "storage_info_id",
+          "image_url",
+          "purchase_price",
+          "purchase_location",
+          "registered",
+          "expiry_date",
+        ],
         required: true,
       });
       const storedFoodName = await Food.findOne({
@@ -76,6 +85,16 @@ export class StoredFoodController {
           id: storedFoodInfo.food_id,
         },
       });
+      const storageInfo = await StorageInfo.findOne({
+        where: {
+          id: storedFoodInfo.storage_info_id,
+        },
+        attributes: ["method", "remaining_amount", "remaining_quantity"],
+      });
+      storedFoodInfo.dataValues.method = storageInfo.method;
+      storedFoodInfo.dataValues.remaining_amount = storageInfo.remaining_amount;
+      storedFoodInfo.dataValues.remaining_quantity =
+        storageInfo.remaining_quantity;
       storedFoodInfo.dataValues.name = storedFoodName.name;
       storedFoodInfo.dataValues.category = storedFoodName.category;
 
@@ -95,6 +114,7 @@ export class StoredFoodController {
     try {
       let foodData;
       const storageInfo = await StorageInfo.create({
+        storage_id: 5,
         method: requestBody.method,
         remaining_amount: requestBody.amount,
         remaining_quantity: requestBody.quantity,
@@ -171,7 +191,7 @@ export class StoredFoodController {
       await PurchasedFood.update(
         { ...requestUpdateData },
         {
-          where: { food_id: requestId },
+          where: { id: requestId },
         }
       );
 
@@ -179,7 +199,7 @@ export class StoredFoodController {
         await Food.update(
           { ...updateData.data },
           {
-            where: { food_id: requestId },
+            where: { id: requestId },
           }
         );
       }
@@ -197,8 +217,8 @@ export class StoredFoodController {
   static async deleteStoredFood(req, res, next) {
     const requestId = req.params.food_id;
     try {
-      const deleteResult = await PurchasedFood.destroy({
-        where: {},
+      await PurchasedFood.destroy({
+        where: { id: requestId },
       });
     } catch (err) {
       console.log(err);
