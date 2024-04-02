@@ -10,7 +10,7 @@ const getSort = {
   purchaseDate: "purchase_date",
 };
 
-export class StoredFoodController {
+export class PurchasedFoodController {
   static async getFoodDetails(req, res, next) {
     const { storage, sort, direction, cursor } = req.query;
     const limit = 8;

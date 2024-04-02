@@ -2,12 +2,12 @@ import express from "express";
 import errorMiddleware from "./middleware/errorMiddleware.js";
 import { userRouter } from "./routers/userRouter.js";
 import { receiptRouter } from "./routers/receiptRouter.js";
-import { storedFoodRouter } from "./routers/storedFoodRouter.js";
+import { purchasedFoodRouter } from "./routers/purchasedFoodRouter.js";
 // import { sequelize } from "./models/index.js";
 
 const app = express();
 
-// sequelize.sync({ force: false });
+// sequelize.sync({ force: true });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -18,7 +18,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/user", userRouter);
 app.use("/api/receipt", receiptRouter);
-app.use("/api/food", storedFoodRouter);
+app.use("/api/food", purchasedFoodRouter);
 
 app.use(errorMiddleware);
 
