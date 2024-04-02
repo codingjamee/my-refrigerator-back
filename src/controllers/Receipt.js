@@ -205,15 +205,27 @@ export class ReceiptController {
   static async deleteReceipt(req, res, next) {
     const requestId = req.params.receipt_id;
     try {
+      const targetData = await PurchasedFood.findOne({
+        where: { receipt_id: requestId },
+      });
+      if (!targetData) {
+        return res
+          .status(404)
+          .json({ message: "해당 데이터를 찾을 수 없습니다." });
+      }
+      await targetData.update(
+        { receipt_id: null },
+        { where: { receipt_id: requestId } }
+      );
       const deleteResult = await Receipt.destroy({
-        where: { requestId },
+        where: { id: requestId },
       });
 
       //삭제했을 때 PurchaseReceiptItem의 처리
       if (deleteResult > 0) {
         return res
           .status(200)
-          .json({ message: "Receipt deleted successfully." });
+          .json({ message: "영수증 삭제에 성공하였습니다." });
       } else {
         return res.status(404).json({ message: "Receipt not found." });
       }
