@@ -11,7 +11,7 @@ const getSort = {
 };
 
 export class StoredFoodController {
-  static async getStoredFoods(req, res, next) {
+  static async getFoodDetails(req, res, next) {
     const { storage, sort, direction, cursor } = req.query;
     const limit = 8;
 
@@ -63,7 +63,7 @@ export class StoredFoodController {
   }
 
   //food id 상세 데이터 조회
-  static async getStoredFood(req, res, next) {
+  static async getFoodDetail(req, res, next) {
     const foodId = req.params.food_id;
     try {
       const storedFoodInfo = await PurchasedFood.findOne({
@@ -232,13 +232,13 @@ export class StoredFoodController {
           .json({ message: "해당 데이터를 찾을 수 없습니다." });
       }
 
-      await StorageInfo.destroy({
-        where: { id: targetData.storage_info_id },
-      });
-      await PurchasedFood.update(
+      await targetData.update(
         { storage_info_id: null },
         { where: { food_id: requestId } }
       );
+      await StorageInfo.destroy({
+        where: { id: targetData.storage_info_id },
+      });
     } catch (err) {
       console.log(err, "데이터를 삭제할 수 없습니다.");
       return res.status(500).json({ message: "삭제에 실패했습니다 " });
