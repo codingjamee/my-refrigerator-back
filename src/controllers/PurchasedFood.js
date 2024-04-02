@@ -4,6 +4,12 @@ import StorageInfo from "../models/StorageInfo.js";
 import { sequelize } from "../models/index.js";
 import { Op } from "sequelize";
 
+const getSort = {
+  price: "purchase_price",
+  expiryDate: "expiry_date",
+  purchaseDate: "purchase_date",
+};
+
 export class PurchasedFoodController {
   static async getFoodDetails(req, res, next) {
     const { storage, sort, direction, cursor } = req.query;
@@ -11,55 +17,59 @@ export class PurchasedFoodController {
 
     const getOrder = () => {
       const order = direction === "down" ? "DESC" : "ASC";
-      return [[sort, order]];
+      return [[getSort[sort], order]];
     };
 
-    const whereStorageCondition = storage
-      ? storage === "total"
-        ? {}
-        : {
-            method: storage,
-          }
-      : {};
+    const whereCondition = {
+      id: {
+        [Op.not]: null,
+      },
+    };
+    const whereStorageCondition =
+      storage && storage === "total"
+        ? { ...whereCondition }
+        : { ...whereCondition, method: storage };
 
-    const whereCondition = {};
     if (cursor && cursor !== "1") {
-      whereCondition[sort] = {
+      whereCondition[getSort[sort]] = {
         [direction === "down" ? Op.lt : Op.gt]: cursor,
       };
     }
 
     try {
-      const foundFoods = await PurchasedFood.findAll({
-        order: getOrder(),
-        limit: limit + 1,
-        attributes: [
-          "id",
-          "food_id",
-          "image_url",
-          "purchase_date",
-          "amount",
-          "quantity",
-          "expiry_date",
-          "storage_info_id",
-        ],
-        where: whereCondition,
+      const foundStorageInfo = await StorageInfo.findAll({
+        where: whereStorageCondition,
       });
+
       const foundFoodWithStorageInfo = await Promise.all(
-        foundFoods.map(async (food) => {
-          const info = await StorageInfo.findOne({
-            where: { id: food.storage_info_id, ...whereStorageCondition },
+        foundStorageInfo.map(async (storageInfo) => {
+          const foundPurchasedFood = await PurchasedFood.findOne({
+            order: getOrder(),
+            limit: limit + 1,
+            attributes: [
+              "food_id",
+              "image_url",
+              "purchase_date",
+              "amount",
+              "quantity",
+              "expiry_date",
+              "storage_info_id",
+            ],
+            where: { storage_info_id: storageInfo.id },
           });
-          const foodData = food.toJSON();
-          const infoData = info ? info.dataValues : {};
-          return { ...foodData, ...infoData };
+          const storageInfoData = storageInfo.toJSON
+            ? storageInfo.toJSON()
+            : storageInfo.dataValues;
+          return {
+            ...storageInfoData,
+            ...(foundPurchasedFood ? foundPurchasedFood.toJSON() : {}),
+          };
         })
       );
-
       const foodsWithFoodName = await Promise.all(
         foundFoodWithStorageInfo.map(async (item) => {
           const food = await Food.findOne({
-            where: { id: item.food_id },
+            where: { id: item.id },
           });
           return {
             ...item,
@@ -88,10 +98,7 @@ export class PurchasedFoodController {
     try {
       const storedFoodInfo = await PurchasedFood.findOne({
         where: {
-          id: foodId,
-          storage_info_id: {
-            [Op.not]: null,
-          },
+          storage_info_id: foodId,
         },
         attributes: [
           "food_id",
@@ -104,8 +111,9 @@ export class PurchasedFoodController {
         ],
         required: true,
       });
-      if (!storedFoodInfo)
+      if (!storedFoodInfo) {
         return res.status(400).json({ message: "데이터가 없습니다" });
+      }
       const storedFoodName = await Food.findOne({
         where: {
           id: storedFoodInfo.food_id,
