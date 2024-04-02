@@ -2,6 +2,7 @@ import { Food } from "../models/Food.js";
 import { PurchasedFood } from "../models/PurchasedFood.js";
 import StorageInfo from "../models/StorageInfo.js";
 import { sequelize } from "../models/index.js";
+import { Op } from "sequelize";
 
 const getSort = {
   price: "purchase_price",
@@ -20,7 +21,7 @@ export class StoredFoodController {
     };
 
     const whereCondition = {
-      method: storage,
+      method: storage ? storage : "",
     };
 
     if (cursor) {
@@ -68,6 +69,9 @@ export class StoredFoodController {
       const storedFoodInfo = await PurchasedFood.findOne({
         where: {
           id: foodId,
+          storage_info_id: {
+            [Op.not]: null,
+          },
         },
         attributes: [
           "food_id",
@@ -80,6 +84,8 @@ export class StoredFoodController {
         ],
         required: true,
       });
+      if (!storedFoodInfo)
+        return res.status(400).json({ message: "데이터가 없습니다" });
       const storedFoodName = await Food.findOne({
         where: {
           id: storedFoodInfo.food_id,
@@ -116,8 +122,8 @@ export class StoredFoodController {
       const storageInfo = await StorageInfo.create({
         storage_id: 5,
         method: requestBody.method,
-        remaining_amount: requestBody.amount,
-        remaining_quantity: requestBody.quantity,
+        remaining_amount: requestBody.remaining_amount,
+        remaining_quantity: requestBody.remaining_quantity,
       });
       if (requestFoodId) {
         await Food.update(
@@ -217,11 +223,27 @@ export class StoredFoodController {
   static async deleteStoredFood(req, res, next) {
     const requestId = req.params.food_id;
     try {
-      await PurchasedFood.destroy({
-        where: { id: requestId },
+      const targetData = await PurchasedFood.findOne({
+        where: { food_id: requestId },
       });
+      if (!targetData) {
+        return res
+          .status(404)
+          .json({ message: "해당 데이터를 찾을 수 없습니다." });
+      }
+
+      await StorageInfo.destroy({
+        where: { id: targetData.storage_info_id },
+      });
+      await PurchasedFood.update(
+        { storage_info_id: null },
+        { where: { food_id: requestId } }
+      );
     } catch (err) {
-      console.log(err);
+      console.log(err, "데이터를 삭제할 수 없습니다.");
+      return res.status(500).json({ message: "삭제에 실패했습니다 " });
     }
+
+    return res.status(200).json({ message: "삭제에 성공하였습니다." });
   }
 }
