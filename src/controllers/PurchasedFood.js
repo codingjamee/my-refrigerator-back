@@ -61,6 +61,7 @@ export class PurchasedFoodController {
           },
           ...whereStorageCondition,
         },
+        limit: limit + 1,
       });
       const storageInfoMap = storageInfos.reduce((acc, storageInfo) => {
         acc[storageInfo.id] = storageInfo;
@@ -87,13 +88,29 @@ export class PurchasedFoodController {
           }
         }
       );
-      const hasNextPage = purchasedFoodsWithStorageInfo.length > limit;
-      const nextCursor = hasNextPage
-        ? purchasedFoodsWithStorageInfo[limit - 2].id
-        : null;
-      if (hasNextPage) purchasedFoodsWithStorageInfo.pop();
+
+      const withFoodName = await Promise.all(
+        purchasedFoodsWithStorageInfo.map(async (foods) => {
+          return await Food.findOne({
+            where: {
+              id: foods.food_id,
+            },
+          });
+        })
+      );
+      const populatedFood = purchasedFoodsWithStorageInfo.map((info, index) => {
+        console.log(withFoodName[index]);
+        return {
+          ...info,
+          ...withFoodName[index].dataValues,
+        };
+      });
+
+      const hasNextPage = populatedFood.length > limit;
+      const nextCursor = hasNextPage ? populatedFood[limit - 2].id : null;
+      if (hasNextPage) populatedFood.pop();
       return res.json({
-        foods: purchasedFoodsWithStorageInfo,
+        foods: populatedFood,
         nextCursor: nextCursor,
       });
     } catch (err) {
