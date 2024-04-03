@@ -21,14 +21,14 @@ export class PurchasedFoodController {
     };
 
     const whereCondition = {
-      id: {
+      storage_info_id: {
         [Op.not]: null,
       },
     };
-    const whereStorageCondition =
-      storage && storage === "total"
-        ? { ...whereCondition }
-        : { ...whereCondition, method: storage };
+    const whereStorageCondition = {};
+    if (storage !== "total") {
+      whereStorageCondition["method"] = storage;
+    }
 
     if (cursor && cursor !== "1") {
       whereCondition[getSort[sort]] = {
@@ -37,53 +37,63 @@ export class PurchasedFoodController {
     }
 
     try {
-      const foundStorageInfo = await StorageInfo.findAll({
-        where: whereStorageCondition,
+      const purchasedFoods = await PurchasedFood.findAll({
+        where: whereCondition,
+        order: getOrder(),
+        attributes: [
+          "id",
+          "food_id",
+          "image_url",
+          "purchase_date",
+          "amount",
+          "quantity",
+          "expiry_date",
+          "purchase_price",
+          "storage_info_id",
+        ],
       });
+      const storageInfoIds = purchasedFoods.map((food) => food.storage_info_id);
 
-      const foundFoodWithStorageInfo = await Promise.all(
-        foundStorageInfo.map(async (storageInfo) => {
-          const foundPurchasedFood = await PurchasedFood.findOne({
-            order: getOrder(),
-            limit: limit + 1,
-            attributes: [
-              "food_id",
-              "image_url",
-              "purchase_date",
-              "amount",
-              "quantity",
-              "expiry_date",
-              "storage_info_id",
-            ],
-            where: { storage_info_id: storageInfo.id },
-          });
-          const storageInfoData = storageInfo.toJSON
-            ? storageInfo.toJSON()
-            : storageInfo.dataValues;
-          return {
-            ...storageInfoData,
-            ...(foundPurchasedFood ? foundPurchasedFood.toJSON() : {}),
-          };
-        })
-      );
-      const foodsWithFoodName = await Promise.all(
-        foundFoodWithStorageInfo.map(async (item) => {
-          const food = await Food.findOne({
-            where: { id: item.id },
-          });
-          return {
-            ...item,
-            name: food ? food.name : null,
-            category: food ? food.category : null,
-          };
-        })
-      );
-      const hasNextPage = foodsWithFoodName.length > limit;
-      const nextCursor = hasNextPage ? foodsWithFoodName[limit - 2].id : null;
-      if (hasNextPage) foodsWithFoodName.pop();
+      const storageInfos = await StorageInfo.findAll({
+        where: {
+          id: {
+            [Op.in]: storageInfoIds,
+          },
+          ...whereStorageCondition,
+        },
+      });
+      const storageInfoMap = storageInfos.reduce((acc, storageInfo) => {
+        acc[storageInfo.id] = storageInfo;
+        return acc;
+      }, {});
 
+      const filteredPurchasedFoods = purchasedFoods.filter(
+        (purchasedFood) =>
+          purchasedFood.storage_info_id &&
+          storageInfos.some((info) => info.id === purchasedFood.storage_info_id)
+      );
+
+      const purchasedFoodsWithStorageInfo = filteredPurchasedFoods.map(
+        (purchasedFood) => {
+          const storageInfo = storageInfoMap[purchasedFood.storage_info_id];
+
+          if (storageInfo) {
+            return {
+              ...purchasedFood.toJSON(),
+              ...storageInfo.dataValues,
+            };
+          } else {
+            return;
+          }
+        }
+      );
+      const hasNextPage = purchasedFoodsWithStorageInfo.length > limit;
+      const nextCursor = hasNextPage
+        ? purchasedFoodsWithStorageInfo[limit - 2].id
+        : null;
+      if (hasNextPage) purchasedFoodsWithStorageInfo.pop();
       return res.json({
-        foods: foodsWithFoodName,
+        foods: purchasedFoodsWithStorageInfo,
         nextCursor: nextCursor,
       });
     } catch (err) {
