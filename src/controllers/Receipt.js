@@ -104,7 +104,6 @@ export class ReceiptController {
       if (receiptInfo) {
         receiptInfo.dataValues.receipt_items = receiptItemsWithFoodName;
         receiptItemsWithFoodName.forEach((item) => delete item.food_id);
-        console.log({ receiptInfo });
         return res.status(200).json(receiptInfo);
       } else {
         return res.status(404).send("Receipt not found!");
