@@ -18,13 +18,15 @@ services:
       MYSQL_ROOT_PASSWORD: "${DOCKERMYSQL_PASSWORD}"
     volumes:
       - .:/src
+      - /src/node_modules
     networks:
       - refrigeratornetwork
   mysql:
     image: mysql:8
     container_name: mysql-container
-    platform: linux/arm64
+    # platform: linux/arm64
     volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
       - refrigerator-mysql-data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: "${DOCKERMYSQL_PASSWORD}"
@@ -41,13 +43,13 @@ services:
     networks:
       - refrigeratornetwork
   pruru-front:
-    build: ../pruru_front # pruru-front의 Dockerfile 위치
+    build: ../pruru_front
     ports:
-      - "80:80" # pruru-front가 사용할 포트 (예시)
+      - "80:80"
     networks:
       - refrigeratornetwork
     environment:
-      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL} # 백엔드 서비스 URL 예시
+      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
     env_file:
       - .env
 volumes:
