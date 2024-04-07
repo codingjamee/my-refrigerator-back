@@ -40,6 +40,16 @@ services:
       - --collation-server=utf8mb4_unicode_ci
     networks:
       - refrigeratornetwork
+  pruru-front:
+    build: ../pruru_front # pruru-front의 Dockerfile 위치
+    ports:
+      - "80:80" # pruru-front가 사용할 포트 (예시)
+    networks:
+      - refrigeratornetwork
+    environment:
+      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL} # 백엔드 서비스 URL 예시
+    env_file:
+      - .env
 volumes:
   refrigerator-mysql-data:
 networks:
