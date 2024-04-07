@@ -8,7 +8,7 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 WORKDIR /src
 
 
-COPY package*.json .
+COPY package*.json ./
 RUN npm install
 
 COPY . .
