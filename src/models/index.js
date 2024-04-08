@@ -7,7 +7,7 @@ dotenv.config();
 export const sequelize = new Sequelize(
   "mysql-container",
   "user",
-  process.env.DB_PASSWORD,
+  process.env.DOCKERMYSQL_PASSWORD,
   {
     dialect: "mysql",
     host: "mysql",
