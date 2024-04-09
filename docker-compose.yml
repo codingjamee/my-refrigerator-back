@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+    image: codingjenner/pruru-back
     ports:
       - "5000:5000"
     depends_on:
@@ -45,12 +46,11 @@ services:
       - refrigeratornetwork
   pruru-front:
     build: ../pruru_front
+    image: codingjenner/pruru-front
     ports:
       - "80:80"
     networks:
       - refrigeratornetwork
-    environment:
-      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
     env_file:
       - .env
 volumes:
