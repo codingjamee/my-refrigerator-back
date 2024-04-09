@@ -1,18 +1,20 @@
 import { User } from "../models/User.js";
 import { v4 } from "uuid";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 class UserController {
   static async signupUser(req, res, next) {
-    const { name, email, password } = req.body;
+    const { name, email, password, image_url } = req.body;
     try {
       await User.create({
         id: v4(),
         name,
         email,
         password,
+        image_url,
       });
-      return res.status(201).json("signup success!!");
+      return res.status(201).json({ id: req.email, text: "signup success!!" });
     } catch (err) {
       console.log(err);
       return res.status(500).json("cannot signup user!");
@@ -22,9 +24,9 @@ class UserController {
     const JWT_SECRET = process.env.JWT_SECRET;
     const { email, password } = req.body;
     try {
-      const foundUser = User.findOne({
-        where: { id: email },
-        attributes: ["name", "email", "image_url"],
+      const foundUser = await User.findOne({
+        where: { email: email },
+        attributes: ["name", "email", "image_url", "password"],
       });
       if (!foundUser) {
         return res
@@ -44,7 +46,9 @@ class UserController {
         expiresIn: "1h",
       });
       res.cookie("token", token, { httpOnly: true });
-      return res.status(200).json("signin success!!");
+      return res
+        .status(200)
+        .json({ id: foundUser.email, text: "signin success!!" });
     } catch (err) {
       console.log(err);
       return res.status(500).json("cannot get user!");
