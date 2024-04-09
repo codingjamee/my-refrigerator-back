@@ -30,6 +30,7 @@ services:
       - refrigerator-mysql-data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: "${DOCKERMYSQL_PASSWORD}"
+      MYSQL_ROOT_USER: "${DB_USER}"
       MYSQL_DATABASE: "mysql-container"
       MYSQL_DEFAULT_AUTHENTICATION_PLUGIN: caching_sha2_password
     env_file:
