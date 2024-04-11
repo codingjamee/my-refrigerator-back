@@ -106,12 +106,12 @@ export class ReceiptController {
         receiptItemsWithFoodName.forEach((item) => delete item.food_id);
         return res.status(200).json(receiptInfo);
       } else {
-        return res.status(404).send("Receipt not found!");
+        return res.status(404).json({ message: "Receipt not found!" });
       }
     } catch (err) {
       console.log(err);
       // next(err)
-      return res.status(500).send("cannot get receipt data!");
+      return res.status(500).json({ message: "cannot get receipt data!" });
     }
   }
 
@@ -165,7 +165,7 @@ export class ReceiptController {
     } catch (err) {
       await transaction.rollback();
       console.log(err);
-      return res.status(500).send("cannot post receipt data!");
+      return res.status(500).json({ message: "cannot post receipt data!" });
       // next(err)
     }
   }
