@@ -5,29 +5,34 @@ import bcrypt from "bcrypt";
 
 class UserController {
   static async signupUser(req, res, next) {
-    const { name, email, password, image_url } = req.body;
+    const { name, email, password } = req.body;
+    const data = {
+      id: v4(),
+      name,
+      email,
+      password,
+    };
+    if (req.body.image_url) {
+      data.image_url = req.body.image_url;
+    }
     try {
-      await User.create({
-        id: v4(),
-        name,
-        email,
-        password,
-        image_url,
-      });
-      return res.status(201).json({ id: req.email, text: "signup success!!" });
+      await User.create(data);
+      return res.status(201).json({ email: email, text: "signup success!!" });
     } catch (err) {
       console.log(err);
       return res.status(500).json("cannot signup user!");
     }
   }
   static async loginUser(req, res, next) {
-    const JWT_SECRET = process.env.JWT_SECRET;
     const { email, password } = req.body;
+    console.log(req.body);
+    const JWT_SECRET = process.env.JWT_SECRET;
     try {
       const foundUser = await User.findOne({
         where: { email: email },
         attributes: ["name", "email", "image_url", "password"],
       });
+      console.log(foundUser);
       if (!foundUser) {
         return res
           .status(401)
@@ -45,10 +50,15 @@ class UserController {
       const token = jwt.sign({ id: foundUser.email }, JWT_SECRET, {
         expiresIn: "1h",
       });
-      res.cookie("token", token, { httpOnly: true });
       return res
+        .cookie("token", token, { httpOnly: true })
         .status(200)
-        .json({ id: foundUser.email, text: "signin success!!" });
+        .json({
+          ok: true,
+          username: foundUser.name,
+          image: foundUser.image_url || "",
+          text: "signin success!!",
+        });
     } catch (err) {
       console.log(err);
       return res.status(500).json("cannot get user!");
