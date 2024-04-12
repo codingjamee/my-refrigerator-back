@@ -1,8 +1,11 @@
 import { Food } from "../models/Food.js";
 import { PurchasedFood } from "../models/PurchasedFood.js";
 import StorageInfo from "../models/StorageInfo.js";
+import { User } from "../models/User.js";
 import { sequelize } from "../models/index.js";
 import { Op } from "sequelize";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 const getSort = {
   price: "purchase_price",
@@ -125,12 +128,13 @@ export class PurchasedFoodController {
     try {
       const storedFoodInfo = await PurchasedFood.findOne({
         where: {
-          storage_info_id: foodId,
+          food_id: foodId,
         },
         attributes: [
           "food_id",
           "storage_info_id",
           "image_url",
+          "purchase_date",
           "purchase_price",
           "purchase_location",
           "registered",
@@ -163,7 +167,7 @@ export class PurchasedFoodController {
     } catch (err) {
       console.log(err);
       // next(err)
-      return res.status(500).send("cannot get stored food data!");
+      return res.status(500).json({ message: "cannot get stored food data!" });
     }
   }
 
@@ -173,9 +177,24 @@ export class PurchasedFoodController {
     const transaction = await sequelize.transaction();
 
     try {
+      const reqUser = req.user;
+      console.log("jwt decoded id", reqUser.id);
       let foodData;
+      //storage를 생성해야함
+      const user = await User.findOne({
+        email: reqUser.id,
+      });
+      let storageId = await Storage.findOne({
+        user_id: user.email,
+      });
+      if (!storageId) {
+        const storage = await Storage.create({
+          user_id: user.email,
+        });
+        storageId = storage.id;
+      }
       const storageInfo = await StorageInfo.create({
-        storage_id: 5,
+        storage_id: storageId,
         method: requestBody.method,
         remaining_amount: requestBody.remaining_amount,
         remaining_quantity: requestBody.remaining_quantity,
@@ -225,7 +244,7 @@ export class PurchasedFoodController {
       });
     } catch (err) {
       await transaction.rollback();
-      res.status(500).send("cannot post food data!");
+      res.status(500).json({ message: "cannot post food data!" });
       console.log(err);
     }
   }
@@ -233,7 +252,7 @@ export class PurchasedFoodController {
   static async putStoredFood(req, res, next) {
     const requestId = req.params.food_id;
     const requestUpdateData = req.body;
-    const updateData = (() => {
+    const updateFoodData = (() => {
       const data = {};
       if (requestUpdateData.name) {
         data.name = requestUpdateData.name;
@@ -249,16 +268,21 @@ export class PurchasedFoodController {
     })();
 
     try {
-      await PurchasedFood.update(
-        { ...requestUpdateData },
-        {
-          where: { id: requestId },
-        }
-      );
+      const targetFood = await PurchasedFood.findOne({
+        id: requestId,
+      });
+      await targetFood.update({ ...requestUpdateData });
+      const targetStorageInfo = await StorageInfo.findOne({
+        id: targetFood.storage_id,
+      });
+      await targetStorageInfo.update({
+        remaining_amount: requestUpdateData.remaining_amount,
+        remaining_quantity: requestUpdateData.remaining_quantity,
+      });
 
-      if (updateData.need) {
+      if (updateFoodData.need) {
         await Food.update(
-          { ...updateData.data },
+          { ...updateFoodData.data },
           {
             where: { id: requestId },
           }
