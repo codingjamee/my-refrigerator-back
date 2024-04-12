@@ -26,7 +26,7 @@ class UserController {
   static async loginUser(req, res, next) {
     const { email, password } = req.body;
     console.log(req.body);
-    const JWT_SECRET = process.env.JWT_SECRET;
+    const { JWT_SECRET } = process.env;
     try {
       const foundUser = await User.findOne({
         where: { email: email },
@@ -61,8 +61,14 @@ class UserController {
         });
     } catch (err) {
       console.log(err);
-      return res.status(500).json("cannot get user!");
+      return res.status(500).json({ message: "cannot get user!" });
     }
+  }
+
+  static async logoutUser(req, res, next) {
+    return res
+      .clearCookie("token")
+      .json({ message: "성공적으로 로그아웃하였습니다." });
   }
 }
 
