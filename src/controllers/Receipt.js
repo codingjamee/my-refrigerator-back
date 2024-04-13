@@ -15,6 +15,7 @@ export class ReceiptController {
   static async getReceipts(req, res, next) {
     const { year, month } = parseDateString(req.query.month);
     const { cursor } = req.query;
+    const user = req.user.id;
     const searchStartDate = new Date(year, month - 1, 1);
     const searchEndDate = new Date(year, month, 0);
     const limit = 5;
@@ -24,6 +25,7 @@ export class ReceiptController {
         [Op.gte]: searchStartDate,
         [Op.lte]: searchEndDate,
       },
+      user_id: user,
     };
 
     if (cursor && cursor !== "1") {
@@ -67,10 +69,12 @@ export class ReceiptController {
   //영수증 상세
   static async getReceipt(req, res, next) {
     const requestId = req.params.receipt_id;
+    const user = req.user.id;
     try {
       const receiptInfo = await Receipt.findOne({
         where: {
           id: requestId,
+          user_id: user,
         },
         attributes: ["id", "purchase_location", "purchase_date", "total_price"],
       });

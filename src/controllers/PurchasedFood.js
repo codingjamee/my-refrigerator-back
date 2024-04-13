@@ -1,5 +1,6 @@
 import { Food } from "../models/Food.js";
 import { PurchasedFood } from "../models/PurchasedFood.js";
+import Storage from "../models/Storage.js";
 import StorageInfo from "../models/StorageInfo.js";
 import { User } from "../models/User.js";
 import { sequelize } from "../models/index.js";
@@ -16,6 +17,7 @@ const getSort = {
 export class PurchasedFoodController {
   static async getFoodDetails(req, res, next) {
     const { storage, sort, direction, cursor } = req.query;
+    const user = req.user.id;
     const limit = 8;
 
     const getOrder = () => {
@@ -27,6 +29,7 @@ export class PurchasedFoodController {
       storage_info_id: {
         [Op.not]: null,
       },
+      user_id: user,
     };
     const whereStorageCondition = {};
     if (storage !== "total") {
@@ -182,10 +185,10 @@ export class PurchasedFoodController {
       let foodData;
       //storage를 생성해야함
       const user = await User.findOne({
-        email: reqUser.id,
+        where: { email: reqUser.id },
       });
       let storageId = await Storage.findOne({
-        user_id: user.email,
+        where: { user_id: user.id },
       });
       if (!storageId) {
         const storage = await Storage.create({
