@@ -24,12 +24,15 @@ export class PurchasedFoodController {
       const order = direction === "down" ? "DESC" : "ASC";
       return [[getSort[sort], order]];
     };
+    const userInfo = await User.findOne({
+      where: { email: user },
+    });
 
     const whereCondition = {
       storage_info_id: {
         [Op.not]: null,
       },
-      user_id: user,
+      user_id: userInfo.id,
     };
     const whereStorageCondition = {};
     if (storage !== "total") {
