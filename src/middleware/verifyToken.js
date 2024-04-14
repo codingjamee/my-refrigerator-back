@@ -6,7 +6,10 @@ export const verifyToken = (req, res, next) => {
   const { JWT_SECRET } = process.env;
   const token = req.cookies["token"];
   if (!token) {
-    return res.status(401).json({ message: "Access Denied" });
+    return res
+      .status(401)
+      .clearCookie("token")
+      .json({ message: "토큰이 유효하지 않습니다." });
   }
 
   try {
