@@ -126,7 +126,7 @@ export class ReceiptController {
     console.log("request body!!!", req.body);
     const transaction = await sequelize.transaction();
     try {
-      const user = User.findOne({
+      const user = await User.findOne({
         where: { email: req.user.id },
       });
       const receiptData = new Receipt(
