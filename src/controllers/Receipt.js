@@ -152,7 +152,7 @@ export class ReceiptController {
           await PurchasedFood.create(
             {
               ...item,
-              user_id: "da13b21f-49f9-4bc0-9e1b-f64ca37c6e91", //추후 변경
+              user_id: user.id,
               amount: item.amount || 0,
               receipt_id: receiptData.id,
               food_id: foodData.id,
