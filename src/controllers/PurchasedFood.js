@@ -293,7 +293,9 @@ export class PurchasedFoodController {
       });
       await targetFood.update({ ...requestUpdateData });
       const targetStorageInfo = await StorageInfo.findOne({
-        id: targetFood.storage_id,
+        where: {
+          id: targetFood.storage_id,
+        },
       });
       await targetStorageInfo.update({
         remaining_amount: requestUpdateData.remaining_amount,
