@@ -177,8 +177,8 @@ export class PurchasedFoodController {
   static async postStoredFood(req, res, next) {
     const requestFoodId = req?.params.food_id;
     const requestBody = req.body;
-    const transaction = await sequelize.transaction();
 
+    const userTransaction = await sequelize.transaction();
     try {
       const reqUser = req.user;
       console.log("jwt decoded id", reqUser.id);
@@ -186,23 +186,31 @@ export class PurchasedFoodController {
       //storage를 생성해야함
       const user = await User.findOne({
         where: { email: reqUser.id },
+        transaction: userTransaction,
       });
       let storageId = await Storage.findOne({
         where: { user_id: user.id },
+        transaction: userTransaction,
       });
       if (!storageId) {
-        const storage = await Storage.create({
-          user_id: user.email,
-        });
-        storageId = storage.id;
+        const storage = await Storage.create(
+          {
+            user_id: user.id,
+          },
+          { transaction: userTransaction }
+        );
+        storageId = storage;
       }
+      await userTransaction.commit();
+
       const storageInfo = await StorageInfo.create({
-        storage_id: storageId,
+        storage_id: storageId.id,
         method: requestBody.method,
         remaining_amount: requestBody.remaining_amount,
         remaining_quantity: requestBody.remaining_quantity,
       });
       if (requestFoodId) {
+        const updateTransaction = await sequelize.transaction();
         await Food.update(
           {
             name: requestBody.name,
@@ -210,10 +218,10 @@ export class PurchasedFoodController {
           },
           {
             where: {
-              id: requestFoodId,
+              food_id: requestFoodId,
             },
-          },
-          { transaction }
+            transaction: updateTransaction,
+          }
         );
         await PurchasedFood.update(
           { ...requestBody, storage_info_id: storageInfo.id },
@@ -221,24 +229,30 @@ export class PurchasedFoodController {
             where: {
               food_id: requestFoodId,
             },
-          },
-          { transaction }
+            transaction: updateTransaction,
+          }
         );
-        await transaction.commit();
+        await updateTransaction.commit();
       } else {
+        const creationTransaction = await sequelize.transaction();
         foodData = await Food.create(
           {
-            name: item.name,
-            category: item.category,
+            name: requestBody.name,
+            category: requestBody.category,
           },
-          { transaction }
+          { transaction: creationTransaction }
         );
-        await PurchasedFood.create({
-          ...requestBody,
-          food_id: foodData.id,
-          storage_info_id: storageInfo.id,
-        });
-        await transaction.commit();
+        await PurchasedFood.create(
+          {
+            ...requestBody,
+            user_id: user.id,
+            food_id: foodData.id,
+            storage_info_id: storageInfo.id,
+            registered: true,
+          },
+          { transaction: creationTransaction }
+        );
+        await creationTransaction.commit();
       }
 
       return res.status(201).json({
