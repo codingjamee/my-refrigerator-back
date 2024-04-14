@@ -1,5 +1,6 @@
 import { Receipt } from "../models/Receipt.js";
 import { Food } from "../models/Food.js";
+import { User } from "../models/User.js";
 import { PurchasedFood } from "../models/PurchasedFood.js";
 import { sequelize } from "../models/index.js";
 import { Op } from "sequelize";
@@ -125,9 +126,12 @@ export class ReceiptController {
     console.log("request body!!!", req.body);
     const transaction = await sequelize.transaction();
     try {
+      const user = User.findOne({
+        email: req.user.id,
+      });
       const receiptData = new Receipt(
         {
-          user_id: "da13b21f-49f9-4bc0-9e1b-f64ca37c6e91",
+          user_id: user.id,
           total_price,
           purchase_date,
           receipt_items,
