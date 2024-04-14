@@ -223,7 +223,7 @@ export class PurchasedFoodController {
           },
           {
             where: {
-              food_id: requestFoodId,
+              id: requestFoodId,
             },
             transaction: updateTransaction,
           }
