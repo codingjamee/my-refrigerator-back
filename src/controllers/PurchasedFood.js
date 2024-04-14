@@ -182,6 +182,9 @@ export class PurchasedFoodController {
     const requestBody = req.body;
 
     const userTransaction = await sequelize.transaction();
+    const updateTransaction = await sequelize.transaction();
+    const creationTransaction = await sequelize.transaction();
+
     try {
       const reqUser = req.user;
       console.log("jwt decoded id", reqUser.id);
@@ -213,7 +216,6 @@ export class PurchasedFoodController {
         remaining_quantity: requestBody.remaining_quantity,
       });
       if (requestFoodId) {
-        const updateTransaction = await sequelize.transaction();
         await Food.update(
           {
             name: requestBody.name,
@@ -237,7 +239,6 @@ export class PurchasedFoodController {
         );
         await updateTransaction.commit();
       } else {
-        const creationTransaction = await sequelize.transaction();
         foodData = await Food.create(
           {
             name: requestBody.name,
@@ -263,6 +264,15 @@ export class PurchasedFoodController {
         foodId: requestFoodId || foodData.id,
       });
     } catch (err) {
+      if (userTransaction) {
+        await userTransaction.rollback();
+      }
+      if (updateTransaction && !updateTransaction.finished) {
+        await updateTransaction.rollback();
+      }
+      if (creationTransaction && !creationTransaction.finished) {
+        await creationTransaction.rollback();
+      }
       await transaction.rollback();
       res.status(500).json({ message: "cannot post food data!" });
       console.log(err);
