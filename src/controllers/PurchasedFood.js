@@ -264,7 +264,7 @@ export class PurchasedFoodController {
         foodId: requestFoodId || foodData.id,
       });
     } catch (err) {
-      if (userTransaction) {
+      if (userTransaction && !userTransaction.finished) {
         await userTransaction.rollback();
       }
       if (updateTransaction && !updateTransaction.finished) {
