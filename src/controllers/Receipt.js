@@ -21,12 +21,18 @@ export class ReceiptController {
     const searchEndDate = new Date(year, month, 0);
     const limit = 5;
 
+    const userInfo = await User.findOne({
+      where: {
+        email: user,
+      },
+    });
+
     const whereCondition = {
       purchase_date: {
         [Op.gte]: searchStartDate,
         [Op.lte]: searchEndDate,
       },
-      user_id: user,
+      user_id: userInfo.id,
     };
 
     if (cursor && cursor !== "1") {
