@@ -289,12 +289,12 @@ export class PurchasedFoodController {
 
     try {
       const targetFood = await PurchasedFood.findOne({
-        id: requestId,
+        where: { food_id: requestId },
       });
       await targetFood.update({ ...requestUpdateData });
       const targetStorageInfo = await StorageInfo.findOne({
         where: {
-          id: targetFood.storage_id,
+          id: targetFood.storage_info_id,
         },
       });
       await targetStorageInfo.update({
