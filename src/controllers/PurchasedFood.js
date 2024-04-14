@@ -273,7 +273,6 @@ export class PurchasedFoodController {
       if (creationTransaction && !creationTransaction.finished) {
         await creationTransaction.rollback();
       }
-      await transaction.rollback();
       res.status(500).json({ message: "cannot post food data!" });
       console.log(err);
     }
