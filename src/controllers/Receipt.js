@@ -78,10 +78,15 @@ export class ReceiptController {
     const requestId = req.params.receipt_id;
     const user = req.user.id;
     try {
+      const userInfo = await User.findOne({
+        where: {
+          email: user,
+        },
+      });
       const receiptInfo = await Receipt.findOne({
         where: {
           id: requestId,
-          user_id: user,
+          user_id: userInfo.id,
         },
         attributes: ["id", "purchase_location", "purchase_date", "total_price"],
       });
