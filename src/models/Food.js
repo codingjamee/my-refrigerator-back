@@ -9,7 +9,7 @@ export const Food = sequelize.define("food", {
     autoIncrement: true,
   },
   name: {
-    type: DataTypes.STRING(50),
+    type: DataTypes.STRING(500),
     allowNull: false,
   },
   category: {
