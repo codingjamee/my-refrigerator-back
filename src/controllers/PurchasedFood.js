@@ -182,8 +182,8 @@ export class PurchasedFoodController {
     const requestBody = req.body;
 
     const userTransaction = await sequelize.transaction();
-    const updateTransaction = await sequelize.transaction();
-    const creationTransaction = await sequelize.transaction();
+    let updateTransaction;
+    let creationTransaction;
 
     try {
       const reqUser = req.user;
@@ -199,6 +199,7 @@ export class PurchasedFoodController {
         transaction: userTransaction,
       });
       if (!storageId) {
+        updateTransaction = await sequelize.transaction();
         const storage = await Storage.create(
           {
             user_id: user.id,
@@ -239,6 +240,7 @@ export class PurchasedFoodController {
         );
         await updateTransaction.commit();
       } else {
+        creationTransaction = await sequelize.transaction();
         foodData = await Food.create(
           {
             name: requestBody.name,
