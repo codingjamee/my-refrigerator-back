@@ -36,7 +36,7 @@ class UserController {
       if (!foundUser) {
         return res
           .status(401)
-          .json("이메일 혹은 비밀번호가 일치하지 않습니다!");
+          .json({ message: "이메일 혹은 비밀번호가 일치하지 않습니다!" });
       }
       const isValidPassword = await bcrypt.compare(
         password,
@@ -45,7 +45,7 @@ class UserController {
       if (!isValidPassword) {
         return res
           .status(401)
-          .json("이메일 혹은 비밀번호가 일치하지 않습니다!");
+          .json({ message: "이메일 혹은 비밀번호가 일치하지 않습니다!" });
       }
       const token = jwt.sign({ id: foundUser.email }, JWT_SECRET, {
         expiresIn: "1h",
