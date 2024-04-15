@@ -119,6 +119,7 @@ export class PurchasedFoodController {
       const nextCursor = hasNextPage ? populatedFood[limit - 2].id : null;
       if (hasNextPage) populatedFood.pop();
       return res.json({
+        ok: true,
         foods: populatedFood,
         nextCursor: nextCursor,
       });
@@ -169,7 +170,7 @@ export class PurchasedFoodController {
       storedFoodInfo.dataValues.name = storedFoodName.name;
       storedFoodInfo.dataValues.category = storedFoodName.category;
 
-      return res.json(storedFoodInfo);
+      return res.json({ ...storedFoodInfo.dataValues, ok: true });
     } catch (err) {
       console.log(err);
       // next(err)
@@ -262,6 +263,7 @@ export class PurchasedFoodController {
       }
 
       return res.status(201).json({
+        ok: true,
         message: "성공적으로 저장되었습니다",
         foodId: requestFoodId || foodData.id,
       });
@@ -323,6 +325,7 @@ export class PurchasedFoodController {
       }
 
       return res.status(200).json({
+        ok: true,
         message: "food data updated successfully",
       });
     } catch (err) {
@@ -356,6 +359,8 @@ export class PurchasedFoodController {
       return res.status(500).json({ message: "삭제에 실패했습니다 " });
     }
 
-    return res.status(200).json({ message: "삭제에 성공하였습니다." });
+    return res
+      .status(200)
+      .json({ ok: true, message: "삭제에 성공하였습니다." });
   }
 }
