@@ -17,7 +17,9 @@ class UserController {
     }
     try {
       await User.create(data);
-      return res.status(201).json({ email: email, text: "signup success!!" });
+      return res
+        .status(201)
+        .json({ ok: true, email: email, text: "signup success!!" });
     } catch (err) {
       console.log(err);
       return res.status(500).json("cannot signup user!");
@@ -68,7 +70,7 @@ class UserController {
   static async logoutUser(req, res, next) {
     return res
       .clearCookie("token")
-      .json({ message: "성공적으로 로그아웃하였습니다." });
+      .json({ ok: true, message: "성공적으로 로그아웃하였습니다." });
   }
 }
 
