@@ -46,6 +46,7 @@ export class PurchasedFoodController {
     }
 
     try {
+      //storage_info_id가 있는 것들 중 해당 user의 것만
       const purchasedFoods = await PurchasedFood.findAll({
         where: whereCondition,
         order: getOrder(),
@@ -61,8 +62,10 @@ export class PurchasedFoodController {
           "storage_info_id",
         ],
       });
+      //user의 storage_info list
       const storageInfoIds = purchasedFoods.map((food) => food.storage_info_id);
 
+      //user의 storageInfo들 (조건 method가 요청한 값)
       const storageInfos = await StorageInfo.findAll({
         where: {
           id: {
@@ -72,25 +75,28 @@ export class PurchasedFoodController {
         },
         limit: limit + 1,
       });
+      //storageInfo들 id와 키로 매핑한 객체
       const storageInfoMap = storageInfos.reduce((acc, storageInfo) => {
         acc[storageInfo.id] = storageInfo;
         return acc;
       }, {});
 
+      //유저가 구매한 food중 user의 storageInfo의 id와 동일한 것 중 method가 요청한 값
       const filteredPurchasedFoods = purchasedFoods.filter(
         (purchasedFood) =>
           purchasedFood.storage_info_id &&
           storageInfos.some((info) => info.id === purchasedFood.storage_info_id)
       );
 
+      //storage info를 넣은 정보
       const purchasedFoodsWithStorageInfo = filteredPurchasedFoods.map(
         (purchasedFood) => {
           const storageInfo = storageInfoMap[purchasedFood.storage_info_id];
 
           if (storageInfo) {
             return {
-              ...purchasedFood.toJSON(),
               ...storageInfo.dataValues,
+              ...purchasedFood.toJSON(),
             };
           } else {
             return;
@@ -98,6 +104,7 @@ export class PurchasedFoodController {
         }
       );
 
+      //foodName 넣은 정보
       const withFoodName = await Promise.all(
         purchasedFoodsWithStorageInfo.map(async (foods) => {
           return await Food.findOne({
@@ -110,8 +117,8 @@ export class PurchasedFoodController {
       const populatedFood = purchasedFoodsWithStorageInfo.map((info, index) => {
         console.log(withFoodName[index]);
         return {
-          ...info,
           ...withFoodName[index].dataValues,
+          ...info,
         };
       });
 
