@@ -178,6 +178,7 @@ export class ReceiptController {
 
       await transaction.commit();
       return res.status(201).json({
+        ok: true,
         message: "영수증 저장이 정상적으로 처리되었습니다.",
         receipt_id: receiptData.id,
       });
