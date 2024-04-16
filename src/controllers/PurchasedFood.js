@@ -135,7 +135,7 @@ export class PurchasedFoodController {
     try {
       const storedFoodInfo = await PurchasedFood.findOne({
         where: {
-          food_id: foodId,
+          id: foodId,
         },
         attributes: [
           "food_id",
