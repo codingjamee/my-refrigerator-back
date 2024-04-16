@@ -68,6 +68,7 @@ export class ReceiptController {
     });
 
     return res.json({
+      ok: true,
       receipts: foundReceipts,
       nextCursor: nextCursor,
     });
@@ -120,6 +121,7 @@ export class ReceiptController {
       if (receiptInfo) {
         receiptInfo.dataValues.receipt_items = receiptItemsWithFoodName;
         receiptItemsWithFoodName.forEach((item) => delete item.food_id);
+        receiptInfo.ok = true;
         return res.status(200).json(receiptInfo);
       } else {
         return res.status(404).json({ message: "Receipt not found!" });
@@ -208,7 +210,10 @@ export class ReceiptController {
       if (updateReceipt[0] > 0) {
         return res
           .status(200)
-          .json({ message: "receipt registered status updated successfully." });
+          .json({
+            ok: true,
+            message: "receipt registered status updated successfully.",
+          });
       } else {
         return res.status(404).json({
           message: "update receipt data not found.",
@@ -244,7 +249,7 @@ export class ReceiptController {
       if (deleteResult > 0) {
         return res
           .status(200)
-          .json({ message: "영수증 삭제에 성공하였습니다." });
+          .json({ ok: true, message: "영수증 삭제에 성공하였습니다." });
       } else {
         return res.status(404).json({ message: "Receipt not found." });
       }
