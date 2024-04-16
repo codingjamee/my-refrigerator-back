@@ -147,7 +147,6 @@ export class PurchasedFoodController {
           "registered",
           "expiry_date",
         ],
-        required: true,
       });
       if (!storedFoodInfo) {
         return res.status(400).json({ message: "데이터가 없습니다" });
@@ -190,6 +189,7 @@ export class PurchasedFoodController {
       const reqUser = req.user;
       console.log("jwt decoded id", reqUser.id);
       let foodData;
+      let purchasedData;
       //storage를 생성해야함
       const user = await User.findOne({
         where: { email: reqUser.id },
@@ -250,7 +250,7 @@ export class PurchasedFoodController {
           },
           { transaction: creationTransaction }
         );
-        await PurchasedFood.create(
+        purchasedData = await PurchasedFood.create(
           {
             ...requestBody,
             user_id: user.id,
@@ -266,7 +266,7 @@ export class PurchasedFoodController {
       return res.status(201).json({
         ok: true,
         message: "성공적으로 저장되었습니다",
-        foodId: requestFoodId || foodData.id,
+        foodId: requestFoodId || purchasedData.id,
       });
     } catch (err) {
       if (userTransaction && !userTransaction.finished) {
