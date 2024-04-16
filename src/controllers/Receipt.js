@@ -121,8 +121,7 @@ export class ReceiptController {
       if (receiptInfo) {
         receiptInfo.dataValues.receipt_items = receiptItemsWithFoodName;
         receiptItemsWithFoodName.forEach((item) => delete item.food_id);
-        receiptInfo.ok = true;
-        return res.status(200).json(receiptInfo);
+        return res.status(200).json({ ...receiptInfo.dataValues, ok: true });
       } else {
         return res.status(404).json({ message: "Receipt not found!" });
       }
@@ -208,12 +207,10 @@ export class ReceiptController {
       );
 
       if (updateReceipt[0] > 0) {
-        return res
-          .status(200)
-          .json({
-            ok: true,
-            message: "receipt registered status updated successfully.",
-          });
+        return res.status(200).json({
+          ok: true,
+          message: "receipt registered status updated successfully.",
+        });
       } else {
         return res.status(404).json({
           message: "update receipt data not found.",
