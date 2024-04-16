@@ -218,6 +218,7 @@ export class PurchasedFoodController {
         remaining_quantity: requestBody.remaining_quantity,
       });
       if (requestFoodId) {
+        updateTransaction = await sequelize.transaction();
         await Food.update(
           {
             name: requestBody.name,
