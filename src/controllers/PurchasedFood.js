@@ -39,9 +39,13 @@ export class PurchasedFoodController {
       whereStorageCondition["method"] = storage;
     }
 
+    const cursorInfo = await PurchasedFood.findOne({
+      where: { id: cursor },
+    });
+
     if (cursor && cursor !== "1") {
-      whereCondition["id"] = {
-        [direction === "down" ? Op.lt : Op.gt]: cursor,
+      whereCondition[getSort[sort]] = {
+        [direction === "down" ? Op.lt : Op.gt]: cursorInfo[getSort[sort]],
       };
     }
 
@@ -349,6 +353,9 @@ export class PurchasedFoodController {
       const targetData = await PurchasedFood.findOne({
         where: { food_id: requestId },
       });
+      const onlyFoodData = await PurchasedFood.findOne({
+        where: { food_id: requestId, receipt_id: null },
+      });
       if (!targetData) {
         return res
           .status(404)
@@ -359,6 +366,12 @@ export class PurchasedFoodController {
         { storage_info_id: null },
         { where: { food_id: requestId } }
       );
+      if (onlyFoodData) {
+        await targetData.destroy({ where: { food_id: requestId } });
+        await Food.destroy({
+          where: { id: onlyFoodData.food_id },
+        });
+      }
       await StorageInfo.destroy({
         where: { id: targetData.storage_info_id },
       });
