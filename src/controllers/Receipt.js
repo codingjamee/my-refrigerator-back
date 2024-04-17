@@ -241,20 +241,21 @@ export class ReceiptController {
         },
       });
 
-      //먼저 receipt_id를 null로 변경
-      if (storedFoodsWithReceipt.length > 0) {
-        await Promise.all(
-          storedFoodsWithReceipt.map((food) =>
-            food.update({ receipt_id: null })
-          )
-        );
-      }
+      const allReceiptDatas = await PurchasedFood.findAll({
+        where: { receipt_id: requestId },
+      });
+      await Promise.all(
+        allReceiptDatas.map(
+          async (food) => await food.update({ receipt_id: null })
+        )
+      );
+
       let deleteResult;
       deleteResult = await Receipt.destroy({
         where: { id: requestId },
       });
 
-      if (targetDatas) {
+      if (targetDatas.length > 0) {
         //저장안된 영수증 purchased_food, food를 삭제
         await Promise.all(
           targetDatas.map(
