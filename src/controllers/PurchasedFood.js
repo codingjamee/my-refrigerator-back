@@ -39,11 +39,10 @@ export class PurchasedFoodController {
       whereStorageCondition["method"] = storage;
     }
 
-    const cursorInfo = await PurchasedFood.findOne({
-      where: { id: cursor },
-    });
-
     if (cursor && cursor !== "1") {
+      const cursorInfo = await PurchasedFood.findOne({
+        where: { id: cursor },
+      });
       whereCondition[getSort[sort]] = {
         [direction === "down" ? Op.lt : Op.gt]: cursorInfo[getSort[sort]],
       };
