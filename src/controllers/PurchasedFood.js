@@ -324,6 +324,7 @@ export class PurchasedFoodController {
       await targetStorageInfo.update({
         remaining_amount: requestUpdateData.remaining_amount,
         remaining_quantity: requestUpdateData.remaining_quantity,
+        method: requestUpdateData.method,
       });
 
       if (updateFoodData.need) {
