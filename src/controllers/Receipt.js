@@ -231,15 +231,6 @@ export class ReceiptController {
       const targetDatas = await PurchasedFood.findAll({
         where: { receipt_id: requestId, storage_info_id: null },
       });
-      //영수증에서 저장된 purchased_food
-      const storedFoodsWithReceipt = await PurchasedFood.findAll({
-        where: {
-          receipt_id: requestId,
-          storage_info_id: {
-            [Op.ne]: null,
-          },
-        },
-      });
 
       const allReceiptDatas = await PurchasedFood.findAll({
         where: { receipt_id: requestId },
