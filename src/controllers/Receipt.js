@@ -4,6 +4,7 @@ import { User } from "../models/User.js";
 import { PurchasedFood } from "../models/PurchasedFood.js";
 import { sequelize } from "../models/index.js";
 import { Op } from "sequelize";
+import StorageInfo from "../models/StorageInfo.js";
 
 const parseDateString = (YM) => {
   const [year, month, date] = YM.split(".").map(Number);
@@ -226,21 +227,44 @@ export class ReceiptController {
   static async deleteReceipt(req, res, next) {
     const requestId = req.params.receipt_id;
     try {
-      const targetData = await PurchasedFood.findOne({
-        where: { receipt_id: requestId },
+      //영수증에서 저장안된 purchased_food
+      const targetDatas = await PurchasedFood.findAll({
+        where: { receipt_id: requestId, storage_info_id: null },
       });
-      if (!targetData) {
-        return res
-          .status(404)
-          .json({ message: "해당 데이터를 찾을 수 없습니다." });
+      //영수증에서 저장된 purchased_food
+      const storedFoodsWithReceipt = await PurchasedFood.findAll({
+        where: {
+          receipt_id: requestId,
+          storage_info_id: {
+            [Op.ne]: null,
+          },
+        },
+      });
+
+      //먼저 receipt_id를 null로 변경
+      if (storedFoodsWithReceipt.length > 0) {
+        await Promise.all(
+          storedFoodsWithReceipt.map((food) =>
+            food.update({ receipt_id: null })
+          )
+        );
       }
-      await targetData.update(
-        { receipt_id: null },
-        { where: { receipt_id: requestId } }
-      );
-      const deleteResult = await Receipt.destroy({
+      let deleteResult;
+      deleteResult = await Receipt.destroy({
         where: { id: requestId },
       });
+
+      if (targetDatas) {
+        //저장안된 영수증 purchased_food, food를 삭제
+        await Promise.all(
+          targetDatas.map(
+            async (foods) => await foods.destroy({ where: { id: requestId } })
+          )
+        );
+        await Food.destroy({
+          where: { id: targetDatas[0].food_id },
+        });
+      }
 
       //삭제했을 때 PurchaseReceiptItem의 처리
       if (deleteResult > 0) {
