@@ -40,7 +40,7 @@ export class PurchasedFoodController {
     }
 
     if (cursor && cursor !== "1") {
-      whereCondition[getSort[sort]] = {
+      whereCondition["id"] = {
         [direction === "down" ? Op.lt : Op.gt]: cursor,
       };
     }
@@ -123,7 +123,7 @@ export class PurchasedFoodController {
       });
 
       const hasNextPage = populatedFood.length > limit;
-      const nextCursor = hasNextPage ? populatedFood[limit - 2].id : null;
+      const nextCursor = hasNextPage ? populatedFood[limit].id : null;
       if (hasNextPage) populatedFood.pop();
       return res.json({
         ok: true,
