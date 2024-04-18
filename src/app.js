@@ -6,8 +6,10 @@ import { purchasedFoodRouter } from "./routers/purchasedFoodRouter.js";
 import cookieParser from "cookie-parser";
 import { verifyToken } from "./middleware/verifyToken.js";
 // import { sequelize } from "./models/index.js";
+import { setupModelRelationships } from "./models/modelRelations.js";
 
 const app = express();
+setupModelRelationships();
 
 // sequelize.sync({ force: false });
 app.use(cookieParser());
