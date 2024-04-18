@@ -16,10 +16,12 @@ const getSort = {
 
 export class PurchasedFoodController {
   static async getFoodDetails(req, res, next) {
-    const { storage, sort, direction, cursor } = req.query;
+    const { storage, sort, direction, page = 1 } = req.query;
     const user = req.user.id;
     const limit = 8;
-
+    const offset = (+page - 1) * limit;
+    console.log({ storage, sort, direction, page });
+    console.log({ limit, offset });
     const getOrder = () => {
       const order = direction === "down" ? "DESC" : "ASC";
       return [[getSort[sort], order]];
@@ -39,15 +41,6 @@ export class PurchasedFoodController {
       whereStorageCondition["method"] = storage;
     }
 
-    if (cursor && cursor !== "1") {
-      const cursorInfo = await PurchasedFood.findOne({
-        where: { id: cursor },
-      });
-      whereCondition[getSort[sort]] = {
-        [direction === "down" ? Op.lt : Op.gt]: cursorInfo[getSort[sort]],
-      };
-    }
-
     try {
       //storage_info_id가 있는 것들 중 해당 user의 것만
       const purchasedFoods = await PurchasedFood.findAll({
@@ -64,74 +57,41 @@ export class PurchasedFoodController {
           "purchase_price",
           "storage_info_id",
         ],
+        include: [{ model: StorageInfo, required: true }],
+        limit: limit,
+        offset: offset,
       });
-      //user의 storage_info list
-      const storageInfoIds = purchasedFoods.map((food) => food.storage_info_id);
 
-      //user의 storageInfo들 (조건 method가 요청한 값)
-      const storageInfos = await StorageInfo.findAll({
-        where: {
-          id: {
-            [Op.in]: storageInfoIds,
+      const totalItems = await PurchasedFood.count({
+        include: [
+          {
+            model: StorageInfo,
+            as: "storage_info",
+            where: storage !== "total" ? { method: storage } : {},
+            required: true,
           },
-          ...whereStorageCondition,
-        },
-        limit: limit + 1,
+        ],
       });
-      //storageInfo들 id와 키로 매핑한 객체
-      const storageInfoMap = storageInfos.reduce((acc, storageInfo) => {
-        acc[storageInfo.id] = storageInfo;
-        return acc;
-      }, {});
 
-      //유저가 구매한 food중 user의 storageInfo의 id와 동일한 것 중 method가 요청한 값
-      const filteredPurchasedFoods = purchasedFoods.filter(
-        (purchasedFood) =>
-          purchasedFood.storage_info_id &&
-          storageInfos.some((info) => info.id === purchasedFood.storage_info_id)
-      );
+      const totalPages = Math.ceil(totalItems / limit);
 
-      //storage info를 넣은 정보
-      const purchasedFoodsWithStorageInfo = filteredPurchasedFoods.map(
-        (purchasedFood) => {
-          const storageInfo = storageInfoMap[purchasedFood.storage_info_id];
-
-          if (storageInfo) {
-            return {
-              ...storageInfo.dataValues,
-              ...purchasedFood.toJSON(),
-            };
-          } else {
-            return;
-          }
-        }
-      );
-
-      //foodName 넣은 정보
-      const withFoodName = await Promise.all(
-        purchasedFoodsWithStorageInfo.map(async (foods) => {
-          return await Food.findOne({
-            where: {
-              id: foods.food_id,
-            },
+      const populatedFood = await Promise.all(
+        purchasedFoods.map(async (food) => {
+          const foodDetails = await Food.findOne({
+            where: { id: food.food_id },
           });
+          return {
+            ...foodDetails.get({ plain: true }),
+            ...food.get({ plain: true }),
+          };
         })
       );
-      const populatedFood = purchasedFoodsWithStorageInfo.map((info, index) => {
-        console.log(withFoodName[index]);
-        return {
-          ...withFoodName[index].dataValues,
-          ...info,
-        };
-      });
 
-      const hasNextPage = populatedFood.length > limit;
-      const nextCursor = hasNextPage ? populatedFood[limit].id : null;
-      if (hasNextPage) populatedFood.pop();
       return res.json({
         ok: true,
         foods: populatedFood,
-        nextCursor: nextCursor,
+        lastPage: totalPages,
+        page: +page,
       });
     } catch (err) {
       console.log(err);
