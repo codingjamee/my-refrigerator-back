@@ -165,24 +165,15 @@ export class PurchasedFoodController {
         where: { email: reqUser.id },
         transaction: userTransaction,
       });
-      let storageId = await Storage.findOne({
+      const [storage] = await Storage.findOrCreate({
         where: { user_id: user.id },
+        defaults: { user_id: user.id },
         transaction: userTransaction,
       });
-      if (!storageId) {
-        updateTransaction = await sequelize.transaction();
-        const storage = await Storage.create(
-          {
-            user_id: user.id,
-          },
-          { transaction: userTransaction }
-        );
-        storageId = storage;
-      }
       await userTransaction.commit();
 
       const storageInfo = await StorageInfo.create({
-        storage_id: storageId.id,
+        storage_id: storage.id,
         method: requestBody.method,
         remaining_amount: requestBody.remaining_amount,
         remaining_quantity: requestBody.remaining_quantity,
@@ -255,47 +246,50 @@ export class PurchasedFoodController {
 
   static async putStoredFood(req, res, next) {
     const requestId = req.params.food_id;
-    const requestUpdateData = req.body;
-    const updateFoodData = (() => {
-      const data = {};
-      if (requestUpdateData.name) {
-        data.name = requestUpdateData.name;
-      }
-      if (requestUpdateData.category)
-        data.category = requestUpdateData.category;
-      {
-      }
-      return {
-        need: Object.keys(data).length > 0,
-        data,
-      };
-    })();
+    const { name, category, remaining_amount, remaining_quantity, method } =
+      req.body;
 
     try {
+      const transaction = await sequelize.transaction();
       const targetFood = await PurchasedFood.findOne({
         where: { food_id: requestId },
+        transaction,
       });
-      await targetFood.update({ ...requestUpdateData });
+
+      if (!targetFood) {
+        await transaction.rollback();
+        return res
+          .status(404)
+          .json({ message: "food 데이터를 찾을 수 없습니다." });
+      }
+
+      await targetFood.update(
+        { remaining_amount, remaining_quantity, method },
+        { transaction }
+      );
       const targetStorageInfo = await StorageInfo.findOne({
         where: {
           id: targetFood.storage_info_id,
         },
+        transaction,
       });
-      await targetStorageInfo.update({
-        remaining_amount: requestUpdateData.remaining_amount,
-        remaining_quantity: requestUpdateData.remaining_quantity,
-        method: requestUpdateData.method,
-      });
-
-      if (updateFoodData.need) {
-        await Food.update(
-          { ...updateFoodData.data },
+      if (targetStorageInfo) {
+        await targetStorageInfo.update(
           {
-            where: { id: requestId },
-          }
+            remaining_amount,
+            remaining_quantity,
+            method,
+          },
+          { transaction }
         );
       }
-
+      if (name || category) {
+        await Food.update(
+          { name, category },
+          { where: { id: requestId }, transaction }
+        );
+      }
+      await transaction.commit();
       return res.status(200).json({
         ok: true,
         message: "food data updated successfully",
