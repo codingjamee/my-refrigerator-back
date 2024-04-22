@@ -2,6 +2,7 @@ import { User } from "../models/User.js";
 import { v4 } from "uuid";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { verifyToken } from "../middleware/verifyToken.js";
 
 class UserController {
   static async signupUser(req, res, next) {
@@ -27,14 +28,12 @@ class UserController {
   }
   static async loginUser(req, res, next) {
     const { email, password } = req.body;
-    console.log(req.body);
     const { JWT_SECRET } = process.env;
     try {
       const foundUser = await User.findOne({
         where: { email: email },
         attributes: ["name", "email", "image_url", "password"],
       });
-      console.log(foundUser);
       if (!foundUser) {
         return res
           .status(401)
@@ -71,6 +70,20 @@ class UserController {
     return res
       .clearCookie("token")
       .json({ ok: true, message: "성공적으로 로그아웃하였습니다." });
+  }
+  static async userInfo(req, res, next) {
+    console.log(req.user);
+    const email = req.user.id;
+    const foundUser = await User.findOne({
+      where: { email: email },
+      attributes: ["name", "email", "image_url", "password"],
+    });
+    return res.json({
+      ok: true,
+      name: foundUser.name,
+      image: foundUser.image_url || "",
+      text: "signin success!!",
+    });
   }
 }
 
